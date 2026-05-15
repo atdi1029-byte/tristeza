@@ -496,8 +496,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedUrl = getSyncUrl();
   if (savedUrl) document.getElementById('sync-url').value = savedUrl;
 
-  if ('serviceWorker' in navigator)
-    navigator.serviceWorker.register('./service-worker.js');
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(r => r.unregister());
+    });
+  }
 });
 
 function pick(val) {
