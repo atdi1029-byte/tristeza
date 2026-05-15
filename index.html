@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0e0a06">
+<meta name="theme-color" content="#FFF8F0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Tristeza">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -15,35 +15,37 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:      #0e0a06;
-  --card:    #1a1208;
-  --border:  #2e2010;
-  --muted:   #7a6040;
-  --dim:     #a08060;
-  --text:    #f0e8d8;
-  --accent:  #e8944c;
+  --bg:        #FFF8F0;
+  --bg2:       #FFF0E0;
+  --card:      #FFFFFF;
+  --border:    #EDD8BC;
+  --text:      #3A2E28;
+  --muted:     #8A7A6A;
+  --accent:    #E8944C;
+  --accent-dk: #D07A38;
 
-  --great:   #f5c842;
-  --good:    #7ec87e;
-  --low:     #7b9fff;
-  --rough:   #c07bff;
+  --great:  #F5C842;
+  --good:   #5BB87A;
+  --low:    #6B9FFF;
+  --rough:  #B07AE8;
 }
 
 body {
-  background: var(--bg);
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+  background-attachment: fixed;
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 15px;
   min-height: 100vh;
-  padding: 24px 16px 60px;
+  padding: 28px 16px 60px;
 }
 
 h1 {
-  font-size: 24px;
-  font-weight: 800;
+  font-size: 26px;
+  font-weight: 900;
   text-align: center;
-  letter-spacing: 0.02em;
   color: var(--text);
+  letter-spacing: -0.01em;
 }
 .subtitle {
   text-align: center;
@@ -57,26 +59,27 @@ h1 {
 .card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 20px;
   margin-bottom: 14px;
+  box-shadow: 0 2px 12px rgba(232,148,76,0.07);
 }
 
 .card-title {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
-/* ── Mood picker ── */
+/* ── Mood buttons ── */
 .today-label {
   font-size: 13px;
-  color: var(--dim);
+  color: var(--muted);
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .mood-row {
@@ -86,54 +89,32 @@ h1 {
 }
 
 .mood-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 22px 6px;
-  border: 2px solid var(--border);
+  padding: 20px 4px;
+  border: none;
   border-radius: 14px;
-  background: transparent;
-  color: var(--text);
   cursor: pointer;
-  transition: all 0.15s ease;
-}
-.mood-btn:active { transform: scale(0.96); }
-.mood-btn .label {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 800;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: #fff;
+  opacity: 0.38;
+  transition: opacity 0.15s, transform 0.12s;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
+.mood-btn:active  { transform: scale(0.94); }
+.mood-btn.selected { opacity: 1; transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
 
-.mood-btn[data-val="2"].selected  {
-  border-color: var(--great);
-  background: #f5c84218;
-}
-.mood-btn[data-val="2"].selected .label { color: var(--great); }
-
-.mood-btn[data-val="1"].selected  {
-  border-color: var(--good);
-  background: #7ec87e18;
-}
-.mood-btn[data-val="1"].selected .label { color: var(--good); }
-
-.mood-btn[data-val="-1"].selected {
-  border-color: var(--low);
-  background: #7b9fff18;
-}
-.mood-btn[data-val="-1"].selected .label { color: var(--low); }
-
-.mood-btn[data-val="-2"].selected {
-  border-color: var(--rough);
-  background: #c07bff18;
-}
-.mood-btn[data-val="-2"].selected .label { color: var(--rough); }
+.mood-btn[data-val="2"]  { background: var(--great); color: #5a3e00; text-shadow: none; }
+.mood-btn[data-val="1"]  { background: var(--good); }
+.mood-btn[data-val="-1"] { background: var(--low); }
+.mood-btn[data-val="-2"] { background: var(--rough); }
 
 .log-btn {
   display: block;
   width: 100%;
-  margin-top: 16px;
-  padding: 13px;
+  margin-top: 14px;
+  padding: 14px;
   border-radius: 12px;
   border: none;
   background: var(--accent);
@@ -141,49 +122,46 @@ h1 {
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  letter-spacing: 0.04em;
-  transition: opacity 0.15s;
+  letter-spacing: 0.03em;
+  transition: background 0.15s, opacity 0.15s;
 }
-.log-btn:disabled { opacity: 0.3; cursor: default; }
-.log-btn:not(:disabled):hover { opacity: 0.85; }
+.log-btn:disabled { opacity: 0.35; cursor: default; }
+.log-btn:not(:disabled):active { background: var(--accent-dk); }
 
 .logged-msg {
   text-align: center;
   font-size: 13px;
-  color: var(--good);
+  color: var(--accent-dk);
+  font-weight: 600;
   margin-top: 10px;
   min-height: 18px;
 }
 
 /* ── Stats ── */
-.stats-row {
-  display: flex;
-  gap: 8px;
-}
+.stats-row { display: flex; gap: 8px; }
 .stat {
   flex: 1;
   text-align: center;
   padding: 14px 6px;
-  background: #221608;
+  background: var(--bg);
   border-radius: 12px;
+  border: 1px solid var(--border);
 }
 .stat .val {
   font-size: 22px;
   font-weight: 800;
-  color: var(--text);
+  color: var(--accent);
 }
 .stat .lbl {
   font-size: 10px;
   color: var(--muted);
-  margin-top: 3px;
-  letter-spacing: 0.05em;
+  margin-top: 2px;
+  letter-spacing: 0.06em;
+  font-weight: 600;
 }
 
 /* ── Chart ── */
-.chart-wrap {
-  position: relative;
-  height: 180px;
-}
+.chart-wrap { position: relative; height: 180px; }
 
 .legend {
   display: flex;
@@ -199,10 +177,7 @@ h1 {
   font-size: 11px;
   color: var(--muted);
 }
-.legend-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-}
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
 
 /* ── Cycle ── */
 .cycle-result {
@@ -215,20 +190,11 @@ h1 {
   font-weight: 900;
   line-height: 1;
   color: var(--accent);
-  min-width: 80px;
+  min-width: 72px;
 }
 .cycle-meta { flex: 1; }
-.cycle-label {
-  font-size: 15px;
-  font-weight: 700;
-  margin-bottom: 5px;
-  color: var(--text);
-}
-.cycle-desc {
-  font-size: 13px;
-  color: var(--dim);
-  line-height: 1.5;
-}
+.cycle-label { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+.cycle-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
 .confidence-bar {
   margin-top: 10px;
   height: 5px;
@@ -242,16 +208,9 @@ h1 {
   background: var(--accent);
   transition: width 0.4s;
 }
-.confidence-label {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 4px;
-}
-.corr-wrap {
-  position: relative;
-  height: 110px;
-  margin-top: 16px;
-}
+.confidence-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.corr-wrap { position: relative; height: 110px; margin-top: 16px; }
+
 .no-data {
   text-align: center;
   color: var(--muted);
@@ -260,27 +219,34 @@ h1 {
 }
 
 /* ── Prediction ── */
-.prediction-row {
-  display: flex;
-  gap: 10px;
-}
+.prediction-row { display: flex; gap: 8px; }
 .pred-card {
   flex: 1;
-  background: #221608;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 14px 10px;
+  padding: 14px 8px;
   text-align: center;
 }
-.pred-card .pred-icon { font-size: 22px; margin-bottom: 5px; }
-.pred-card .pred-label { font-size: 10px; color: var(--muted); letter-spacing: 0.05em; }
-.pred-card .pred-val { font-size: 16px; font-weight: 800; margin-top: 3px; }
+.pred-card .pred-label {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+.pred-card .pred-val {
+  font-size: 18px;
+  font-weight: 800;
+  margin-top: 4px;
+}
 
 /* ── Calendar ── */
 .cal-month-lbl {
   font-size: 12px;
-  color: var(--dim);
+  color: var(--muted);
   font-weight: 700;
   margin-bottom: 8px;
+  letter-spacing: 0.04em;
 }
 .cal-grid {
   display: grid;
@@ -298,20 +264,25 @@ h1 {
 }
 .cal-day {
   aspect-ratio: 1;
-  border-radius: 5px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 9px;
   color: var(--muted);
-  background: #221608;
+  background: var(--bg);
 }
 .cal-day.empty { background: transparent; }
-.cal-day.today { outline: 2px solid var(--accent); outline-offset: -1px; }
-.cal-day[data-val="2"]  { background: #f5c84228; color: var(--great); font-size: 13px; }
-.cal-day[data-val="1"]  { background: #7ec87e28; color: var(--good);  font-size: 13px; }
-.cal-day[data-val="-1"] { background: #7b9fff28; color: var(--low);   font-size: 13px; }
-.cal-day[data-val="-2"] { background: #c07bff28; color: var(--rough); font-size: 13px; }
+.cal-day.today {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  color: var(--accent-dk);
+  font-weight: 700;
+}
+.cal-day[data-val="2"]  { background: #F5C84240; color: #7A5A00; font-weight:700; }
+.cal-day[data-val="1"]  { background: #5BB87A30; color: #2A6A3A; font-weight:700; }
+.cal-day[data-val="-1"] { background: #6B9FFF30; color: #2040A0; font-weight:700; }
+.cal-day[data-val="-2"] { background: #B07AE830; color: #5A1A9A; font-weight:700; }
 
 /* ── History ── */
 .history-list {
@@ -325,23 +296,31 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  background: #221608;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 10px;
   font-size: 13px;
 }
-.history-item .h-date { color: var(--dim); }
-.history-item .h-mood { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; }
+.history-item .h-date { color: var(--muted); }
+.history-item .h-mood {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
 .history-item .h-del {
   background: none;
   border: none;
-  color: var(--muted);
+  color: #ccc;
   cursor: pointer;
-  font-size: 16px;
-  padding: 0 4px;
+  font-size: 18px;
+  padding: 0 2px;
+  line-height: 1;
   transition: color 0.15s;
 }
-.history-item .h-del:hover { color: #ff6b6b; }
+.history-item .h-del:hover { color: #E07A5F; }
 </style>
 </head>
 <body>
@@ -354,18 +333,10 @@ h1 {
   <div class="card-title">How are you today?</div>
   <div class="today-label" id="today-label"></div>
   <div class="mood-row">
-    <button class="mood-btn" data-val="2">
-      <span class="label">GREAT</span>
-    </button>
-    <button class="mood-btn" data-val="1">
-      <span class="label">GOOD</span>
-    </button>
-    <button class="mood-btn" data-val="-1">
-      <span class="label">LOW</span>
-    </button>
-    <button class="mood-btn" data-val="-2">
-      <span class="label">ROUGH</span>
-    </button>
+    <button class="mood-btn" data-val="2">GREAT</button>
+    <button class="mood-btn" data-val="1">GOOD</button>
+    <button class="mood-btn" data-val="-1">LOW</button>
+    <button class="mood-btn" data-val="-2">ROUGH</button>
   </div>
   <button class="log-btn" id="log-btn" disabled>Log Today</button>
   <div class="logged-msg" id="logged-msg"></div>
@@ -414,12 +385,12 @@ h1 {
       <div class="legend-dot" style="background:var(--rough)"></div>Rough
     </div>
     <div class="legend-item">
-      <div class="legend-dot" style="background:var(--accent);border-radius:2px"></div>7d EMA
+      <div class="legend-dot" style="background:var(--accent);border-radius:2px;width:12px"></div>7d EMA
     </div>
   </div>
 </div>
 
-<!-- Cycle Detection -->
+<!-- Cycle -->
 <div class="card">
   <div class="card-title">Cycle Detector</div>
   <div id="cycle-content">
@@ -446,101 +417,121 @@ h1 {
   <div class="no-data" id="history-empty" style="display:none">No entries yet.</div>
 </div>
 
-<script>
-// ── Mood definitions (4 levels) ───────────────────────────────
-const MOODS = {
-   2:  { label: 'Great', color: '#f5c842' },
-   1:  { label: 'Good',  color: '#7ec87e' },
-  '-1': { label: 'Low',  color: '#7b9fff' },
-  '-2': { label: 'Rough',color: '#c07bff' },
-};
+<!-- Sync -->
+<div class="card">
+  <div class="card-title">Google Sheets Sync</div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5">
+    Paste your Apps Script URL below to back up data to Google Sheets.
+    Data saves locally too — sync just protects against clearing the browser.
+  </p>
+  <input id="sync-url" type="url" placeholder="https://script.google.com/macros/s/..."
+    style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);
+    background:var(--bg);color:var(--text);font-size:13px;margin-bottom:10px;outline:none">
+  <div style="display:flex;gap:8px">
+    <button onclick="syncPush()" style="flex:1;padding:11px;border-radius:10px;border:none;
+      background:var(--accent);color:#fff;font-weight:700;font-size:13px;cursor:pointer">
+      Save to Sheets
+    </button>
+    <button onclick="syncPull()" style="flex:1;padding:11px;border-radius:10px;border:none;
+      background:var(--bg);border:1px solid var(--border);color:var(--text);
+      font-weight:700;font-size:13px;cursor:pointer">
+      Load from Sheets
+    </button>
+  </div>
+  <div id="sync-msg" style="font-size:13px;color:var(--muted);margin-top:10px;
+    text-align:center;min-height:18px"></div>
+</div>
 
-function moodOf(v) {
-  return MOODS[v] || MOODS[String(v)] || null;
-}
+<script>
+// ── Mood config ───────────────────────────────────────────────
+const MOODS = {
+   2:  { label:'Great', color:'#F5C842', bg:'#F5C84240', tc:'#5a3e00' },
+   1:  { label:'Good',  color:'#5BB87A', bg:'#5BB87A30', tc:'#fff'    },
+  '-1':{ label:'Low',   color:'#6B9FFF', bg:'#6B9FFF30', tc:'#fff'    },
+  '-2':{ label:'Rough', color:'#B07AE8', bg:'#B07AE830', tc:'#fff'    },
+};
+function moodOf(v) { return MOODS[v] ?? MOODS[String(v)] ?? null; }
 
 // ── Storage ───────────────────────────────────────────────────
-const STORE_KEY = 'moodcycle_v1';
-
-function loadData() {
-  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+const KEY = 'moodcycle_v1';
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || {}; }
   catch { return {}; }
 }
-function saveData(d) {
-  localStorage.setItem(STORE_KEY, JSON.stringify(d));
-}
+function save(d) { localStorage.setItem(KEY, JSON.stringify(d)); }
 
-// ── Date helpers ──────────────────────────────────────────────
+// ── Dates ─────────────────────────────────────────────────────
 function today() {
   const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
 }
-function pad(n) { return String(n).padStart(2,'0'); }
+function p2(n) { return String(n).padStart(2,'0'); }
 function addDays(iso, n) {
-  const d = new Date(iso);
-  d.setDate(d.getDate() + n);
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const d = new Date(iso); d.setDate(d.getDate()+n);
+  return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
 }
-function formatDate(iso) {
-  const [y,m,dy] = iso.split('-').map(Number);
-  const mn = ['Jan','Feb','Mar','Apr','May','Jun',
-               'Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${mn[m-1]} ${dy}, ${y}`;
+function fmt(iso) {
+  const [y,m,d] = iso.split('-').map(Number);
+  const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${mn[m-1]} ${d}, ${y}`;
 }
 
 // ── State ─────────────────────────────────────────────────────
-let data = loadData();
-let selectedMood = null;
-let timelineChart = null;
-let corrChart = null;
+let data = load();
+let sel  = null;
+let tchart = null, cchart = null;
 
 // ── Boot ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  initPicker();
+  // set date label
+  document.getElementById('today-label').textContent = fmt(today());
+
+  // restore today's entry if already logged
+  const tv = data[today()];
+  if (tv !== undefined) {
+    sel = tv;
+    pick(tv);
+    document.getElementById('log-btn').disabled = false;
+    document.getElementById('log-btn').textContent = 'Update';
+    const m = moodOf(tv);
+    document.getElementById('logged-msg').textContent =
+      m ? `Logged: ${m.label}` : '';
+  }
+
+  // mood button clicks
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sel = parseInt(btn.dataset.val);
+      pick(sel);
+      document.getElementById('log-btn').disabled = false;
+    });
+  });
+
+  // log button
+  document.getElementById('log-btn').addEventListener('click', () => {
+    if (sel === null) return;
+    data[today()] = sel;
+    save(data);
+    const m = moodOf(sel);
+    document.getElementById('logged-msg').textContent =
+      m ? `Saved: ${m.label}` : 'Saved';
+    document.getElementById('log-btn').textContent = 'Update';
+    render();
+  });
+
   render();
+
   if ('serviceWorker' in navigator)
     navigator.serviceWorker.register('./service-worker.js');
 });
 
-// ── Picker ────────────────────────────────────────────────────
-function initPicker() {
-  document.getElementById('today-label').textContent = formatDate(today());
-  const todayVal = data[today()];
-  if (todayVal !== undefined) {
-    selectedMood = todayVal;
-    highlightBtn(todayVal);
-    document.getElementById('log-btn').disabled = false;
-    document.getElementById('log-btn').textContent = 'Update';
-    const m = moodOf(todayVal);
-    document.getElementById('logged-msg').textContent =
-      m ? `Logged: ${m.label}` : '';
-  }
-  document.querySelectorAll('.mood-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      selectedMood = parseInt(btn.dataset.val);
-      highlightBtn(selectedMood);
-      document.getElementById('log-btn').disabled = false;
-    });
-  });
-  document.getElementById('log-btn').addEventListener('click', () => {
-    if (selectedMood === null) return;
-    data[today()] = selectedMood;
-    saveData(data);
-    const m = moodOf(selectedMood);
-    document.getElementById('logged-msg').textContent =
-      m ? `Logged: ${m.label}` : '';
-    document.getElementById('log-btn').textContent = 'Update';
-    render();
-  });
-}
-
-function highlightBtn(val) {
+function pick(val) {
   document.querySelectorAll('.mood-btn').forEach(b =>
     b.classList.toggle('selected', parseInt(b.dataset.val) === val)
   );
 }
 
-// ── Render ────────────────────────────────────────────────────
+// ── Main render ───────────────────────────────────────────────
 function render() {
   const entries = Object.entries(data).sort((a,b) => a[0].localeCompare(b[0]));
   renderStats(entries);
@@ -560,149 +551,123 @@ function renderStats(entries) {
 
   if (!entries.length) {
     document.getElementById('stat-avg').textContent = '—';
-    document.getElementById('stat-low').textContent = '0%';
+    document.getElementById('stat-low').textContent  = '0%';
     return;
   }
-  const vals = entries.map(e => e[1]);
-  const avg = vals.reduce((a,b) => a+b,0) / vals.length;
-  const m = avg >= 1.5 ? MOODS[2] :
-            avg >= 0   ? MOODS[1] :
-            avg >= -1.5 ? MOODS['-1'] : MOODS['-2'];
-  document.getElementById('stat-avg').textContent = m.label;
-  const low = vals.filter(v => v < 0).length;
+  const vals = entries.map(e=>e[1]);
+  const avg  = vals.reduce((a,b)=>a+b,0)/vals.length;
+  const m = avg>=1.5?MOODS[2]:avg>=0?MOODS[1]:avg>=-1.5?MOODS['-1']:MOODS['-2'];
+  document.getElementById('stat-avg').textContent =
+    m ? m.label.toUpperCase() : '—';
+  const low = vals.filter(v=>v<0).length;
   document.getElementById('stat-low').textContent =
-    Math.round(low/vals.length*100) + '%';
+    Math.round(low/vals.length*100)+'%';
 }
 
-// ── Gap-fill dense timeline ───────────────────────────────────
-// Days not logged are linearly interpolated from surrounding logged days.
-// This lets the cycle detector treat gaps as "probably okay" signal
-// rather than missing data, which is the right assumption when you
-// mostly log when feeling rough.
-function buildDenseTimeline(entries, startDate, endDate) {
+// ── Gap-fill + EMA ────────────────────────────────────────────
+function dense(entries, start, end) {
   const map = Object.fromEntries(entries);
-  const days = [];
-  let cur = startDate;
-  while (cur <= endDate) { days.push(cur); cur = addDays(cur,1); }
-
-  const vals = days.map(d => map[d] !== undefined ? map[d] : null);
-
-  // linear interpolate between known values
-  for (let i = 0; i < vals.length; i++) {
-    if (vals[i] !== null) continue;
-    let prev = i-1; while (prev >= 0 && vals[prev] === null) prev--;
-    let next = i+1; while (next < vals.length && vals[next] === null) next++;
-    if (prev < 0 && next >= vals.length) { vals[i] = 0; continue; }
-    if (prev < 0) { vals[i] = vals[next]; continue; }
-    if (next >= vals.length) { vals[i] = vals[prev]; continue; }
-    const t = (i-prev)/(next-prev);
-    vals[i] = vals[prev] + t*(vals[next]-vals[prev]);
+  const days = []; let c = start;
+  while (c <= end) { days.push(c); c = addDays(c,1); }
+  const vals = days.map(d => map[d]!==undefined ? map[d] : null);
+  for (let i=0; i<vals.length; i++) {
+    if (vals[i]!==null) continue;
+    let p=i-1; while(p>=0&&vals[p]===null)p--;
+    let n=i+1; while(n<vals.length&&vals[n]===null)n++;
+    if (p<0&&n>=vals.length){vals[i]=0;continue;}
+    if (p<0){vals[i]=vals[n];continue;}
+    if (n>=vals.length){vals[i]=vals[p];continue;}
+    vals[i]=vals[p]+(vals[n]-vals[p])*(i-p)/(n-p);
   }
-  return { days, vals };
+  return {days, vals};
 }
 
-// ── EMA ───────────────────────────────────────────────────────
-function computeEMA(vals, period) {
-  const alpha = 2/(period+1);
-  const ema = [];
-  for (let i = 0; i < vals.length; i++) {
-    ema.push(i === 0 ? vals[0] : alpha*vals[i] + (1-alpha)*ema[i-1]);
-  }
-  return ema;
+function ema(vals, period) {
+  const a=2/(period+1), out=[];
+  for(let i=0;i<vals.length;i++)
+    out.push(i===0 ? vals[0] : a*vals[i]+(1-a)*out[i-1]);
+  return out;
 }
 
 // ── Timeline chart ────────────────────────────────────────────
 function renderTimeline(entries) {
-  const cutoff = addDays(today(), -89);
-  const recent = entries.filter(e => e[0] >= cutoff);
+  const cutoff = addDays(today(),-89);
+  const recent = entries.filter(e=>e[0]>=cutoff);
   const ctx = document.getElementById('timeline-chart').getContext('2d');
-  if (timelineChart) timelineChart.destroy();
+  if (tchart) tchart.destroy();
   if (!recent.length) return;
 
-  const { days, vals: dense } = buildDenseTimeline(recent, cutoff, today());
-  const ema7 = computeEMA(dense, 7);
-  const logMap = Object.fromEntries(recent);
+  const {days, vals:dv} = dense(recent, cutoff, today());
+  const e7 = ema(dv, 7);
+  const lmap = Object.fromEntries(recent);
 
-  const dotColors = days.map(d => {
-    const v = logMap[d];
-    if (v === undefined) return 'transparent';
-    return moodOf(v)?.color || '#888';
+  const dotColor = days.map(d => {
+    const v = lmap[d];
+    return v===undefined ? 'transparent' : (moodOf(v)?.color||'#888');
   });
-  const dotRadius = days.map(d => logMap[d] !== undefined ? 4 : 0);
-  const labels = days.map(d => { const p=d.split('-'); return `${p[1]}/${p[2]}`; });
+  const dotR = days.map(d => lmap[d]!==undefined ? 5 : 0);
+  const labels = days.map(d=>{ const p=d.split('-'); return `${p[1]}/${p[2]}`; });
 
   const grad = ctx.createLinearGradient(0,0,0,180);
-  grad.addColorStop(0, '#e8944c22');
-  grad.addColorStop(1, '#0e0a0600');
+  grad.addColorStop(0,'rgba(232,148,76,0.18)');
+  grad.addColorStop(1,'rgba(232,148,76,0)');
 
-  timelineChart = new Chart(ctx, {
-    type: 'line',
-    data: {
+  tchart = new Chart(ctx, {
+    type:'line',
+    data:{
       labels,
-      datasets: [
+      datasets:[
         {
-          label: 'Mood',
-          data: days.map(d => logMap[d] !== undefined ? logMap[d] : null),
-          borderColor: 'transparent',
-          pointBackgroundColor: dotColors,
-          pointBorderColor: dotColors,
-          pointRadius: dotRadius,
-          pointHoverRadius: 6,
-          fill: false,
-          spanGaps: false,
-          order: 2,
+          label:'Mood',
+          data: days.map(d=>lmap[d]!==undefined?lmap[d]:null),
+          borderColor:'transparent',
+          pointBackgroundColor: dotColor,
+          pointBorderColor: dotColor,
+          pointRadius: dotR,
+          pointHoverRadius: 7,
+          fill:false, spanGaps:false, order:2,
         },
         {
-          label: '7d EMA',
-          data: ema7,
-          borderColor: '#e8944c',
-          borderWidth: 2.5,
-          pointRadius: 0,
-          fill: true,
-          backgroundColor: grad,
-          tension: 0.4,
-          order: 1,
+          label:'7d EMA',
+          data: e7,
+          borderColor:'#E8944C',
+          borderWidth:2.5,
+          pointRadius:0,
+          fill:true,
+          backgroundColor:grad,
+          tension:0.4,
+          order:1,
         },
       ]
     },
-    options: {
-      animation: false,
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          filter: item => item.datasetIndex === 0 && item.raw !== null,
-          callbacks: {
-            label: ctx => {
-              const m = moodOf(ctx.raw);
-              return m ? m.label : '';
-            }
+    options:{
+      animation:false, responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          filter:item=>item.datasetIndex===0&&item.raw!==null,
+          callbacks:{
+            label:ctx=>{const m=moodOf(ctx.raw);return m?m.label:'';}
           },
-          backgroundColor: '#1a1208',
-          borderColor: '#2e2010',
-          borderWidth: 1,
-          titleColor: '#f0e8d8',
-          bodyColor: '#f0e8d8',
+          backgroundColor:'#fff',
+          borderColor:'#EDD8BC',
+          borderWidth:1,
+          titleColor:'#3A2E28',
+          bodyColor:'#3A2E28',
         }
       },
-      scales: {
-        x: {
-          grid: { color: '#2e2010' },
-          ticks: { color: '#7a6040', maxTicksLimit: 8, font: { size: 10 } },
+      scales:{
+        x:{
+          grid:{color:'#F0E0C8'},
+          ticks:{color:'#8A7A6A',maxTicksLimit:8,font:{size:10}},
         },
-        y: {
-          min: -2.5, max: 2.5,
-          grid: { color: '#2e2010' },
-          ticks: {
-            color: '#7a6040',
-            stepSize: 1,
-            font: { size: 10 },
-            callback: v => {
-              const labels = { 2:'Great', 1:'Good', '-1':'Low', '-2':'Rough' };
-              return labels[v] || '';
-            }
+        y:{
+          min:-2.5,max:2.5,
+          grid:{color:'#F0E0C8'},
+          ticks:{
+            color:'#8A7A6A',stepSize:1,font:{size:10},
+            callback:v=>{const l={2:'Great',1:'Good','-1':'Low','-2':'Rough'};return l[v]||'';}
           }
         }
       }
@@ -711,20 +676,20 @@ function renderTimeline(entries) {
 }
 
 // ── Autocorrelation ───────────────────────────────────────────
-function autocorrelate(vals) {
-  const n = vals.length;
-  const mean = vals.reduce((a,b) => a+b,0)/n;
-  const c = vals.map(x => x-mean);
-  const variance = c.reduce((a,b) => a+b*b,0)/n;
-  if (variance === 0) return [];
-  const results = [];
-  const maxLag = Math.min(60, Math.floor(n/2));
-  for (let lag = 2; lag <= maxLag; lag++) {
-    let sum = 0;
-    for (let i = 0; i < n-lag; i++) sum += c[i]*c[i+lag];
-    results.push({ lag, r: sum/((n-lag)*variance) });
+function autocorr(vals) {
+  const n=vals.length;
+  const mean=vals.reduce((a,b)=>a+b,0)/n;
+  const c=vals.map(x=>x-mean);
+  const v=c.reduce((a,b)=>a+b*b,0)/n;
+  if(!v) return [];
+  const out=[];
+  const max=Math.min(60,Math.floor(n/2));
+  for(let lag=2;lag<=max;lag++){
+    let s=0;
+    for(let i=0;i<n-lag;i++) s+=c[i]*c[i+lag];
+    out.push({lag, r:s/((n-lag)*v)});
   }
-  return results;
+  return out;
 }
 
 // ── Cycle render ──────────────────────────────────────────────
@@ -735,132 +700,101 @@ function renderCycle(entries) {
     document.getElementById('pred-card').style.display = 'none';
     return;
   }
-
-  const { vals: dense } = buildDenseTimeline(entries, entries[0][0], today());
-  const vals = computeEMA(dense, 3);
-  const corrs = autocorrelate(vals);
-
+  const {vals:dv} = dense(entries, entries[0][0], today());
+  const corrs = autocorr(ema(dv,3));
   if (!corrs.length) {
     el.innerHTML = `<div class="no-data">Not enough variation yet.</div>`;
     return;
   }
-
-  const peaks = corrs.filter(c => c.lag >= 4);
+  const peaks = corrs.filter(c=>c.lag>=4);
   if (!peaks.length) {
-    el.innerHTML = `<div class="no-data">No clear cycle detected yet. Keep logging.</div>`;
+    el.innerHTML = `<div class="no-data">No clear cycle yet. Keep logging.</div>`;
     return;
   }
+  const best  = peaks.reduce((a,b)=>b.r>a.r?b:a);
+  const confP = Math.round(Math.max(0,Math.min(1,best.r))*100);
+  const confL = confP>60?'Strong':confP>35?'Moderate':'Weak';
+  const confC = confP>60?'#5BB87A':confP>35?'#E8944C':'#8A7A6A';
+  const second= peaks.filter(c=>Math.abs(c.lag-best.lag)>3).sort((a,b)=>b.r-a.r)[0];
+  const cl    = best.lag;
+  const phase = entries.length%cl;
 
-  const best = peaks.reduce((a,b) => b.r > a.r ? b : a);
-  const confPct = Math.round(Math.max(0,Math.min(1,best.r))*100);
-  const confLabel = confPct > 60 ? 'Strong' : confPct > 35 ? 'Moderate' : 'Weak';
-  const confColor = confPct > 60 ? '#7ec87e' : confPct > 35 ? '#f5c842' : '#7a6040';
+  // avg mood by cycle position
+  const byPos = Array.from({length:cl},()=>[]);
+  entries.forEach((e,i)=>byPos[i%cl].push(e[1]));
+  const avgP  = byPos.map(a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null);
+  const pkPos = avgP.reduce((b,v,i)=>v!==null&&(b===null||v>avgP[b])?i:b,null);
+  const trPos = avgP.reduce((b,v,i)=>v!==null&&(b===null||v<avgP[b])?i:b,null);
+  const dNext = pos=>{const d=(pos-phase+cl)%cl;return d===0?cl:d;};
 
-  const others = peaks
-    .filter(c => Math.abs(c.lag-best.lag) > 3)
-    .sort((a,b) => b.r-a.r);
-  const second = others[0];
-
-  const cycleLen = best.lag;
-  const phase = entries.length % cycleLen;
-
-  const byPos = Array.from({length: cycleLen}, () => []);
-  entries.forEach((e,i) => byPos[i%cycleLen].push(e[1]));
-  const avgByPos = byPos.map(arr =>
-    arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null
-  );
-  const peakPos   = avgByPos.reduce((b,v,i) =>
-    v!==null && (b===null||v>avgByPos[b]) ? i : b, null);
-  const troughPos = avgByPos.reduce((b,v,i) =>
-    v!==null && (b===null||v<avgByPos[b]) ? i : b, null);
-  const daysToNext = pos => {
-    const d = (pos-phase+cycleLen)%cycleLen;
-    return d === 0 ? cycleLen : d;
-  };
-
-  el.innerHTML = `
+  el.innerHTML=`
     <div class="cycle-result">
-      <div class="cycle-big">${cycleLen}<span style="font-size:20px;font-weight:400;color:var(--muted)">d</span></div>
+      <div class="cycle-big">${cl}<span style="font-size:20px;font-weight:400;color:var(--muted)">d</span></div>
       <div class="cycle-meta">
-        <div class="cycle-label">${cycleLen}-day rhythm detected</div>
+        <div class="cycle-label">${cl}-day rhythm detected</div>
         <div class="cycle-desc">
-          Your mood repeats roughly every ${cycleLen} days.${second ? ` Secondary ${second.lag}d pattern also visible.` : ''}
+          Your mood repeats roughly every ${cl} days.${second?` Secondary ${second.lag}d pattern also visible.`:''}
         </div>
         <div class="confidence-bar">
-          <div class="confidence-fill" style="width:${confPct}%;background:${confColor}"></div>
+          <div class="confidence-fill" style="width:${confP}%;background:${confC}"></div>
         </div>
-        <div class="confidence-label">${confLabel} · ${confPct}% confidence</div>
+        <div class="confidence-label">${confL} · ${confP}% confidence</div>
       </div>
     </div>
     <div class="corr-wrap"><canvas id="corr-chart"></canvas></div>
   `;
 
   const ctx2 = document.getElementById('corr-chart').getContext('2d');
-  if (corrChart) corrChart.destroy();
-  corrChart = new Chart(ctx2, {
-    type: 'bar',
-    data: {
-      labels: corrs.map(c => c.lag),
-      datasets: [{
-        data: corrs.map(c => c.r),
-        backgroundColor: corrs.map(c =>
-          c.lag === best.lag ? '#e8944c' :
-          (second && c.lag === second.lag) ? '#e8944c55' : '#2e2010'
+  if (cchart) cchart.destroy();
+  cchart = new Chart(ctx2,{
+    type:'bar',
+    data:{
+      labels:corrs.map(c=>c.lag),
+      datasets:[{
+        data:corrs.map(c=>c.r),
+        backgroundColor:corrs.map(c=>
+          c.lag===best.lag?'#E8944C':
+          (second&&c.lag===second.lag)?'#E8944C66':'#EDD8BC'
         ),
-        borderWidth: 0,
+        borderWidth:0,
       }]
     },
-    options: {
-      animation: false,
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            title: items => `Lag ${items[0].label} days`,
-            label: ctx => `r = ${ctx.raw.toFixed(3)}`,
+    options:{
+      animation:false,responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:i=>`Lag ${i[0].label} days`,
+            label:c=>`r = ${c.raw.toFixed(3)}`,
           },
-          backgroundColor: '#1a1208',
-          borderColor: '#2e2010',
-          borderWidth: 1,
-          titleColor: '#f0e8d8',
-          bodyColor: '#a08060',
+          backgroundColor:'#fff',borderColor:'#EDD8BC',borderWidth:1,
+          titleColor:'#3A2E28',bodyColor:'#8A7A6A',
         }
       },
-      scales: {
-        x: {
-          grid: { display: false },
-          ticks: {
-            color: '#7a6040',
-            font: { size: 9 },
-            callback: (v) => corrs[v]?.lag % 5 === 0 ? corrs[v].lag : '',
-          }
-        },
-        y: {
-          grid: { color: '#2e2010' },
-          ticks: { color: '#7a6040', font: { size: 9 } },
-        }
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#8A7A6A',font:{size:9},
+          callback:v=>corrs[v]?.lag%5===0?corrs[v].lag:''}},
+        y:{grid:{color:'#F0E0C8'},ticks:{color:'#8A7A6A',font:{size:9}}}
       }
     }
   });
 
-  if (peakPos !== null && troughPos !== null) {
-    const dHigh = daysToNext(peakPos);
-    const dLow  = daysToNext(troughPos);
-    document.getElementById('pred-card').style.display = '';
-    document.getElementById('pred-row').innerHTML = `
+  if (pkPos!==null&&trPos!==null) {
+    const dH=dNext(pkPos), dL=dNext(trPos);
+    document.getElementById('pred-card').style.display='';
+    document.getElementById('pred-row').innerHTML=`
       <div class="pred-card">
         <div class="pred-label">NEXT HIGH</div>
-        <div class="pred-val" style="color:var(--great)">${dHigh===0?'Today':dHigh+'d'}</div>
+        <div class="pred-val" style="color:var(--good)">${dH===0?'Today':dH+'d'}</div>
       </div>
       <div class="pred-card">
         <div class="pred-label">NEXT LOW</div>
-        <div class="pred-val" style="color:var(--rough)">${dLow===0?'Today':dLow+'d'}</div>
+        <div class="pred-val" style="color:var(--rough)">${dL===0?'Today':dL+'d'}</div>
       </div>
       <div class="pred-card">
         <div class="pred-label">CYCLE</div>
-        <div class="pred-val" style="color:var(--accent)">${cycleLen}d</div>
+        <div class="pred-val" style="color:var(--accent)">${cl}d</div>
       </div>
     `;
   }
@@ -869,76 +803,116 @@ function renderCycle(entries) {
 // ── Calendar ──────────────────────────────────────────────────
 function renderCalendar() {
   const el = document.getElementById('calendar');
-  const todayKey = today();
-  const start = addDays(todayKey, -89);
-  const months = {};
-  let cur = start;
-  while (cur <= todayKey) {
-    const [y,m] = cur.split('-');
-    const key = `${y}-${m}`;
-    if (!months[key]) months[key] = [];
-    months[key].push(cur);
-    cur = addDays(cur,1);
+  const tk = today();
+  const start = addDays(tk,-89);
+  const months={};
+  let c=start;
+  while(c<=tk){
+    const [y,m]=c.split('-'); const k=`${y}-${m}`;
+    if(!months[k]) months[k]=[];
+    months[k].push(c); c=addDays(c,1);
   }
-  const MN = ['Jan','Feb','Mar','Apr','May','Jun',
-               'Jul','Aug','Sep','Oct','Nov','Dec'];
-  const DN = ['Su','Mo','Tu','We','Th','Fr','Sa'];
-
-  const faceChar = { 2:'☀', 1:'✓', '-1':'·', '-2':'✕' };
-
-  let html = '';
-  Object.entries(months).forEach(([key, days]) => {
-    const [y,m] = key.split('-').map(Number);
-    html += `<div class="cal-month-lbl">${MN[m-1]} ${y}</div><div class="cal-grid">`;
-    DN.forEach(d => html += `<div class="cal-day-hdr">${d}</div>`);
-    const offset = new Date(days[0]).getDay();
-    for (let i=0; i<offset; i++) html += `<div class="cal-day empty"></div>`;
-    days.forEach(dk => {
-      const d = parseInt(dk.split('-')[2]);
-      const v = data[dk];
-      const mo = v !== undefined ? moodOf(v) : null;
-      const isToday = dk === todayKey;
-      html += `<div class="cal-day ${isToday?'today':''}"${
-        v!==undefined ? ` data-val="${v}"` : ''
-      } title="${formatDate(dk)}${mo?': '+mo.label:''}">${d}</div>`;
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const DN=['Su','Mo','Tu','We','Th','Fr','Sa'];
+  let html='';
+  Object.entries(months).forEach(([k,days])=>{
+    const [y,m]=k.split('-').map(Number);
+    html+=`<div class="cal-month-lbl">${MN[m-1]} ${y}</div><div class="cal-grid">`;
+    DN.forEach(d=>html+=`<div class="cal-day-hdr">${d}</div>`);
+    const off=new Date(days[0]).getDay();
+    for(let i=0;i<off;i++) html+=`<div class="cal-day empty"></div>`;
+    days.forEach(dk=>{
+      const d=parseInt(dk.split('-')[2]);
+      const v=data[dk];
+      const mo=v!==undefined?moodOf(v):null;
+      html+=`<div class="cal-day${dk===tk?' today':''}"`+
+        (v!==undefined?` data-val="${v}"`:'') +
+        ` title="${fmt(dk)}${mo?': '+mo.label:''}">${d}</div>`;
     });
-    html += `</div>`;
+    html+=`</div>`;
   });
-  el.innerHTML = html;
+  el.innerHTML=html;
 }
 
 // ── History ───────────────────────────────────────────────────
 function renderHistory(entries) {
-  const list = document.getElementById('history-list');
-  const empty = document.getElementById('history-empty');
-  if (!entries.length) {
-    list.innerHTML = '';
-    empty.style.display = '';
-    return;
-  }
-  empty.style.display = 'none';
-  list.innerHTML = [...entries].reverse().slice(0,60).map(([dk,v]) => {
-    const m = moodOf(v);
-    return `
-      <div class="history-item">
-        <span class="h-date">${formatDate(dk)}</span>
-        <span class="h-mood" style="color:${m?.color||'var(--muted)'}">
-          ${m?.label||v}
-        </span>
-        <button class="h-del" onclick="deleteEntry('${dk}')">×</button>
-      </div>`;
+  const list=document.getElementById('history-list');
+  const empty=document.getElementById('history-empty');
+  if(!entries.length){list.innerHTML='';empty.style.display='';return;}
+  empty.style.display='none';
+  list.innerHTML=[...entries].reverse().slice(0,60).map(([dk,v])=>{
+    const m=moodOf(v);
+    return `<div class="history-item">
+      <span class="h-date">${fmt(dk)}</span>
+      <span class="h-mood" style="background:${m?.bg||'#eee'};color:${m?.tc||m?.color||'#333'}">${m?.label||v}</span>
+      <button class="h-del" onclick="del('${dk}')">×</button>
+    </div>`;
   }).join('');
 }
 
-function deleteEntry(dk) {
+// ── Sheets sync ───────────────────────────────────────────────
+const SYNC_KEY = 'moodcycle_sync_url';
+
+function getUrl() {
+  const u = document.getElementById('sync-url');
+  if (!u.value) u.value = localStorage.getItem(SYNC_KEY)||'';
+  return u.value.trim();
+}
+
+function syncMsg(txt, ok=true) {
+  const el = document.getElementById('sync-msg');
+  el.textContent = txt;
+  el.style.color = ok ? '#5BB87A' : '#E07A5F';
+}
+
+// Save all local data to Sheets
+function syncPush() {
+  const url = getUrl();
+  if (!url) { syncMsg('Paste your Apps Script URL first.', false); return; }
+  localStorage.setItem(SYNC_KEY, url);
+  syncMsg('Saving...');
+  const payload = encodeURIComponent(JSON.stringify(data));
+  // Use img-based GET to avoid CORS redirect issues (same pattern as your other apps)
+  const img = new Image();
+  img.onload = img.onerror = () => syncMsg('Saved to Sheets.');
+  img.src = `${url}?action=mood_push&data=${payload}&_=${Date.now()}`;
+}
+
+// Load data from Sheets (merges with local, Sheets wins on conflict)
+function syncPull() {
+  const url = getUrl();
+  if (!url) { syncMsg('Paste your Apps Script URL first.', false); return; }
+  localStorage.setItem(SYNC_KEY, url);
+  syncMsg('Loading...');
+  fetch(`${url}?action=mood_pull&_=${Date.now()}`)
+    .then(r => r.json())
+    .then(remote => {
+      if (!remote || typeof remote !== 'object')
+        throw new Error('bad response');
+      // merge: remote wins
+      Object.assign(data, remote);
+      save(data);
+      render();
+      syncMsg(`Loaded ${Object.keys(remote).length} entries from Sheets.`);
+    })
+    .catch(() => syncMsg('Could not reach Sheets. Check the URL.', false));
+}
+
+// Auto-restore sync URL
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem(SYNC_KEY);
+  if (saved) document.getElementById('sync-url').value = saved;
+}, { once: false });
+
+function del(dk) {
   delete data[dk];
-  saveData(data);
-  if (dk === today()) {
-    selectedMood = null;
-    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
-    document.getElementById('log-btn').disabled = true;
-    document.getElementById('log-btn').textContent = 'Log Today';
-    document.getElementById('logged-msg').textContent = '';
+  save(data);
+  if(dk===today()){
+    sel=null;
+    document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
+    document.getElementById('log-btn').disabled=true;
+    document.getElementById('log-btn').textContent='Log Today';
+    document.getElementById('logged-msg').textContent='';
   }
   render();
 }
