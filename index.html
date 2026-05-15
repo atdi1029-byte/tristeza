@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0d0d14">
+<meta name="theme-color" content="#0e0a06">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tristeza">
@@ -12,362 +12,424 @@
 <title>Tristeza Tem Fim</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg:       #0d0d14;
-    --card:     #16161f;
-    --border:   #2a2a3a;
-    --muted:    #6b6b88;
-    --text:     #e0e0f0;
-    --dim:      #9090a8;
+:root {
+  --bg:      #0e0a06;
+  --card:    #1a1208;
+  --border:  #2e2010;
+  --muted:   #7a6040;
+  --dim:     #a08060;
+  --text:    #f0e8d8;
+  --accent:  #e8944c;
 
-    --great:    #f5c842;
-    --good:     #7ec87e;
-    --okay:     #888899;
-    --low:      #7b9fff;
-    --rough:    #c07bff;
+  --great:   #f5c842;
+  --good:    #7ec87e;
+  --low:     #7b9fff;
+  --rough:   #c07bff;
+}
 
-    --accent:   #7b9fff;
-  }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  min-height: 100vh;
+  padding: 24px 16px 60px;
+}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 15px;
-    min-height: 100vh;
-    padding: 20px 16px 60px;
-  }
+h1 {
+  font-size: 24px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+.subtitle {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 4px;
+  margin-bottom: 28px;
+  font-style: italic;
+}
 
-  h1 {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-align: center;
-    margin-bottom: 4px;
-  }
-  .subtitle {
-    text-align: center;
-    color: var(--muted);
-    font-size: 13px;
-    margin-bottom: 28px;
-  }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 14px;
+}
 
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px;
-    margin-bottom: 16px;
-  }
+.card-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
 
-  .card-title {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 16px;
-  }
+/* ── Mood picker ── */
+.today-label {
+  font-size: 13px;
+  color: var(--dim);
+  text-align: center;
+  margin-bottom: 16px;
+}
 
-  /* ── Mood picker ── */
-  .today-label {
-    font-size: 13px;
-    color: var(--dim);
-    text-align: center;
-    margin-bottom: 14px;
-  }
+.mood-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
 
-  .mood-row {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
+.mood-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 6px 12px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.mood-btn:active { transform: scale(0.96); }
+.mood-btn .face { width: 48px; height: 48px; }
+.mood-btn .label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
 
-  .mood-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    padding: 14px 10px 10px;
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    background: transparent;
-    color: var(--text);
-    cursor: pointer;
-    transition: all 0.15s;
-    min-width: 64px;
-    flex: 1;
-    max-width: 80px;
-  }
-  .mood-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .mood-btn.selected { border-color: var(--accent); background: #7b9fff18; }
-  .mood-btn .emoji { font-size: 26px; }
-  .mood-btn .label { font-size: 11px; color: var(--muted); }
+.mood-btn[data-val="2"].selected  {
+  border-color: var(--great);
+  background: #f5c84218;
+}
+.mood-btn[data-val="2"].selected .label { color: var(--great); }
 
-  .mood-btn[data-val="2"].selected  { border-color: var(--great); background: #f5c84218; }
-  .mood-btn[data-val="1"].selected  { border-color: var(--good);  background: #7ec87e18; }
-  .mood-btn[data-val="0"].selected  { border-color: var(--okay);  background: #88889918; }
-  .mood-btn[data-val="-1"].selected { border-color: var(--low);   background: #7b9fff18; }
-  .mood-btn[data-val="-2"].selected { border-color: var(--rough); background: #c07bff18; }
+.mood-btn[data-val="1"].selected  {
+  border-color: var(--good);
+  background: #7ec87e18;
+}
+.mood-btn[data-val="1"].selected .label { color: var(--good); }
 
-  .log-btn {
-    display: block;
-    width: 100%;
-    margin-top: 14px;
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    background: var(--accent);
-    color: #fff;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-  .log-btn:disabled { opacity: 0.35; cursor: default; }
-  .log-btn:not(:disabled):hover { opacity: 0.85; }
+.mood-btn[data-val="-1"].selected {
+  border-color: var(--low);
+  background: #7b9fff18;
+}
+.mood-btn[data-val="-1"].selected .label { color: var(--low); }
 
-  .logged-msg {
-    text-align: center;
-    font-size: 13px;
-    color: var(--good);
-    margin-top: 10px;
-    min-height: 18px;
-  }
+.mood-btn[data-val="-2"].selected {
+  border-color: var(--rough);
+  background: #c07bff18;
+}
+.mood-btn[data-val="-2"].selected .label { color: var(--rough); }
 
-  /* ── Stats row ── */
-  .stats-row {
-    display: flex;
-    gap: 10px;
-  }
-  .stat {
-    flex: 1;
-    text-align: center;
-    padding: 14px 8px;
-    background: #1e1e2a;
-    border-radius: 10px;
-  }
-  .stat .val {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--text);
-  }
-  .stat .lbl {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 3px;
-  }
+.log-btn {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 13px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: opacity 0.15s;
+}
+.log-btn:disabled { opacity: 0.3; cursor: default; }
+.log-btn:not(:disabled):hover { opacity: 0.85; }
 
-  /* ── Chart ── */
-  .chart-wrap {
-    position: relative;
-    height: 180px;
-  }
+.logged-msg {
+  text-align: center;
+  font-size: 13px;
+  color: var(--good);
+  margin-top: 10px;
+  min-height: 18px;
+}
 
-  /* ── Cycle result ── */
-  .cycle-result {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-  .cycle-big {
-    font-size: 52px;
-    font-weight: 800;
-    line-height: 1;
-    color: var(--accent);
-    min-width: 80px;
-  }
-  .cycle-meta { flex: 1; min-width: 160px; }
-  .cycle-meta .cycle-label {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-  .cycle-meta .cycle-desc {
-    font-size: 13px;
-    color: var(--dim);
-    line-height: 1.5;
-  }
-  .confidence-bar {
-    margin-top: 10px;
-    height: 6px;
-    border-radius: 3px;
-    background: var(--border);
-    overflow: hidden;
-  }
-  .confidence-fill {
-    height: 100%;
-    border-radius: 3px;
-    background: var(--accent);
-    transition: width 0.4s;
-  }
-  .confidence-label {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 4px;
-  }
+/* ── Stats ── */
+.stats-row {
+  display: flex;
+  gap: 8px;
+}
+.stat {
+  flex: 1;
+  text-align: center;
+  padding: 14px 6px;
+  background: #221608;
+  border-radius: 12px;
+}
+.stat .val {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+}
+.stat .lbl {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 3px;
+  letter-spacing: 0.05em;
+}
 
-  .no-data {
-    text-align: center;
-    color: var(--muted);
-    font-size: 13px;
-    padding: 20px 0;
-  }
+/* ── Chart ── */
+.chart-wrap {
+  position: relative;
+  height: 180px;
+}
 
-  /* ── Autocorr chart ── */
-  .corr-wrap {
-    position: relative;
-    height: 120px;
-    margin-top: 16px;
-  }
+.legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  justify-content: center;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
 
-  /* ── Calendar ── */
-  .cal-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-  }
-  .cal-day-hdr {
-    text-align: center;
-    font-size: 10px;
-    color: var(--muted);
-    padding-bottom: 4px;
-    font-weight: 600;
-  }
-  .cal-day {
-    aspect-ratio: 1;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    color: var(--dim);
-    background: #1e1e2a;
-    position: relative;
-    cursor: default;
-  }
-  .cal-day.empty { background: transparent; }
-  .cal-day.has-data { color: #fff; }
-  .cal-day.today { outline: 2px solid var(--accent); }
-  .cal-day[data-val="2"]  { background: #f5c84233; color: var(--great); }
-  .cal-day[data-val="1"]  { background: #7ec87e33; color: var(--good); }
-  .cal-day[data-val="0"]  { background: #88889933; }
-  .cal-day[data-val="-1"] { background: #7b9fff33; color: var(--low); }
-  .cal-day[data-val="-2"] { background: #c07bff33; color: var(--rough); }
+/* ── Cycle ── */
+.cycle-result {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.cycle-big {
+  font-size: 56px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--accent);
+  min-width: 80px;
+}
+.cycle-meta { flex: 1; }
+.cycle-label {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: var(--text);
+}
+.cycle-desc {
+  font-size: 13px;
+  color: var(--dim);
+  line-height: 1.5;
+}
+.confidence-bar {
+  margin-top: 10px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: hidden;
+}
+.confidence-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.4s;
+}
+.confidence-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.corr-wrap {
+  position: relative;
+  height: 110px;
+  margin-top: 16px;
+}
+.no-data {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 16px 0;
+}
 
-  .cal-month-lbl {
-    font-size: 12px;
-    color: var(--dim);
-    margin-bottom: 8px;
-    font-weight: 600;
-  }
+/* ── Prediction ── */
+.prediction-row {
+  display: flex;
+  gap: 10px;
+}
+.pred-card {
+  flex: 1;
+  background: #221608;
+  border-radius: 12px;
+  padding: 14px 10px;
+  text-align: center;
+}
+.pred-card .pred-icon { font-size: 22px; margin-bottom: 5px; }
+.pred-card .pred-label { font-size: 10px; color: var(--muted); letter-spacing: 0.05em; }
+.pred-card .pred-val { font-size: 16px; font-weight: 800; margin-top: 3px; }
 
-  .legend {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 14px;
-    justify-content: center;
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    color: var(--dim);
-  }
-  .legend-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-  }
+/* ── Calendar ── */
+.cal-month-lbl {
+  font-size: 12px;
+  color: var(--dim);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  margin-bottom: 16px;
+}
+.cal-day-hdr {
+  text-align: center;
+  font-size: 9px;
+  color: var(--muted);
+  padding-bottom: 4px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--muted);
+  background: #221608;
+}
+.cal-day.empty { background: transparent; }
+.cal-day.today { outline: 2px solid var(--accent); outline-offset: -1px; }
+.cal-day[data-val="2"]  { background: #f5c84228; color: var(--great); font-size: 13px; }
+.cal-day[data-val="1"]  { background: #7ec87e28; color: var(--good);  font-size: 13px; }
+.cal-day[data-val="-1"] { background: #7b9fff28; color: var(--low);   font-size: 13px; }
+.cal-day[data-val="-2"] { background: #c07bff28; color: var(--rough); font-size: 13px; }
 
-  /* ── Next prediction ── */
-  .prediction-row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .pred-card {
-    flex: 1;
-    min-width: 120px;
-    background: #1e1e2a;
-    border-radius: 10px;
-    padding: 14px 12px;
-    text-align: center;
-  }
-  .pred-card .pred-icon { font-size: 24px; margin-bottom: 6px; }
-  .pred-card .pred-label { font-size: 11px; color: var(--muted); }
-  .pred-card .pred-val {
-    font-size: 16px;
-    font-weight: 700;
-    margin-top: 2px;
-  }
-
-  /* ── Edit history ── */
-  .history-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-height: 280px;
-    overflow-y: auto;
-  }
-  .history-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    background: #1e1e2a;
-    border-radius: 8px;
-    font-size: 13px;
-  }
-  .history-item .h-date { color: var(--dim); }
-  .history-item .h-mood { font-size: 18px; }
-  .history-item .h-del {
-    background: none;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 16px;
-    padding: 0 4px;
-    line-height: 1;
-    transition: color 0.15s;
-  }
-  .history-item .h-del:hover { color: #ff6b6b; }
-
-  @media (max-width: 480px) {
-    .cycle-big { font-size: 40px; }
-  }
+/* ── History ── */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #221608;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.history-item .h-date { color: var(--dim); }
+.history-item .h-face { width: 22px; height: 22px; }
+.history-item .h-del {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 4px;
+  transition: color 0.15s;
+}
+.history-item .h-del:hover { color: #ff6b6b; }
 </style>
 </head>
 <body>
 
 <h1>Tristeza Tem Fim</h1>
-<p class="subtitle">Track your highs and lows. Find your rhythm.</p>
+<p class="subtitle">sadness has an end</p>
+
+<!-- SVG face defs (reused via use) -->
+<svg style="display:none" id="face-defs">
+  <!-- Great -->
+  <symbol id="face-great" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="22" fill="#f5c842" opacity="0.18"/>
+    <circle cx="24" cy="24" r="22" fill="none" stroke="#f5c842" stroke-width="2"/>
+    <circle cx="17" cy="20" r="2.5" fill="#f5c842"/>
+    <circle cx="31" cy="20" r="2.5" fill="#f5c842"/>
+    <path d="M14 28 Q24 38 34 28" stroke="#f5c842" stroke-width="2.5"
+          stroke-linecap="round" fill="none"/>
+    <!-- sparkle -->
+    <line x1="38" y1="10" x2="38" y2="14" stroke="#f5c842" stroke-width="1.5"
+          stroke-linecap="round"/>
+    <line x1="36" y1="12" x2="40" y2="12" stroke="#f5c842" stroke-width="1.5"
+          stroke-linecap="round"/>
+  </symbol>
+  <!-- Good -->
+  <symbol id="face-good" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="22" fill="#7ec87e" opacity="0.15"/>
+    <circle cx="24" cy="24" r="22" fill="none" stroke="#7ec87e" stroke-width="2"/>
+    <circle cx="17" cy="20" r="2.2" fill="#7ec87e"/>
+    <circle cx="31" cy="20" r="2.2" fill="#7ec87e"/>
+    <path d="M16 28 Q24 35 32 28" stroke="#7ec87e" stroke-width="2.5"
+          stroke-linecap="round" fill="none"/>
+  </symbol>
+  <!-- Low -->
+  <symbol id="face-low" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="22" fill="#7b9fff" opacity="0.12"/>
+    <circle cx="24" cy="24" r="22" fill="none" stroke="#7b9fff" stroke-width="2"/>
+    <circle cx="17" cy="20" r="2.2" fill="#7b9fff"/>
+    <circle cx="31" cy="20" r="2.2" fill="#7b9fff"/>
+    <path d="M16 32 Q24 25 32 32" stroke="#7b9fff" stroke-width="2.5"
+          stroke-linecap="round" fill="none"/>
+    <!-- downcast eyes -->
+    <path d="M14 17 Q17 15 20 17" stroke="#7b9fff" stroke-width="1.5"
+          stroke-linecap="round" fill="none"/>
+    <path d="M28 17 Q31 15 34 17" stroke="#7b9fff" stroke-width="1.5"
+          stroke-linecap="round" fill="none"/>
+  </symbol>
+  <!-- Rough -->
+  <symbol id="face-rough" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="22" fill="#c07bff" opacity="0.12"/>
+    <circle cx="24" cy="24" r="22" fill="none" stroke="#c07bff" stroke-width="2"/>
+    <!-- sad eyes with tears -->
+    <circle cx="17" cy="21" r="2.2" fill="#c07bff"/>
+    <circle cx="31" cy="21" r="2.2" fill="#c07bff"/>
+    <path d="M17 24 Q17.5 27 16.5 29" stroke="#c07bff" stroke-width="1.5"
+          stroke-linecap="round" fill="none" opacity="0.7"/>
+    <path d="M31 24 Q31.5 27 30.5 29" stroke="#c07bff" stroke-width="1.5"
+          stroke-linecap="round" fill="none" opacity="0.7"/>
+    <path d="M14 34 Q24 27 34 34" stroke="#c07bff" stroke-width="2.5"
+          stroke-linecap="round" fill="none"/>
+    <path d="M14 18 Q17 15 20 18" stroke="#c07bff" stroke-width="1.5"
+          stroke-linecap="round" fill="none"/>
+    <path d="M28 18 Q31 15 34 18" stroke="#c07bff" stroke-width="1.5"
+          stroke-linecap="round" fill="none"/>
+  </symbol>
+</svg>
 
 <!-- Log Today -->
-<div class="card" id="log-card">
+<div class="card">
   <div class="card-title">How are you today?</div>
   <div class="today-label" id="today-label"></div>
   <div class="mood-row">
     <button class="mood-btn" data-val="2">
-      <span class="emoji">😄</span><span class="label">Great</span>
+      <svg class="face"><use href="#face-great"/></svg>
+      <span class="label">GREAT</span>
     </button>
     <button class="mood-btn" data-val="1">
-      <span class="emoji">🙂</span><span class="label">Good</span>
-    </button>
-    <button class="mood-btn" data-val="0">
-      <span class="emoji">😐</span><span class="label">Okay</span>
+      <svg class="face"><use href="#face-good"/></svg>
+      <span class="label">GOOD</span>
     </button>
     <button class="mood-btn" data-val="-1">
-      <span class="emoji">😔</span><span class="label">Low</span>
+      <svg class="face"><use href="#face-low"/></svg>
+      <span class="label">LOW</span>
     </button>
     <button class="mood-btn" data-val="-2">
-      <span class="emoji">😢</span><span class="label">Rough</span>
+      <svg class="face"><use href="#face-rough"/></svg>
+      <span class="label">ROUGH</span>
     </button>
   </div>
   <button class="log-btn" id="log-btn" disabled>Log Today</button>
@@ -380,26 +442,26 @@
   <div class="stats-row">
     <div class="stat">
       <div class="val" id="stat-days">0</div>
-      <div class="lbl">Days logged</div>
+      <div class="lbl">DAYS</div>
     </div>
     <div class="stat">
       <div class="val" id="stat-streak">0</div>
-      <div class="lbl">Streak</div>
+      <div class="lbl">STREAK</div>
     </div>
     <div class="stat">
       <div class="val" id="stat-avg">—</div>
-      <div class="lbl">Avg mood</div>
+      <div class="lbl">AVERAGE</div>
     </div>
     <div class="stat">
-      <div class="val" id="stat-sad">0%</div>
-      <div class="lbl">Low days</div>
+      <div class="val" id="stat-low">0%</div>
+      <div class="lbl">LOW DAYS</div>
     </div>
   </div>
 </div>
 
 <!-- Timeline -->
 <div class="card">
-  <div class="card-title">Timeline (last 90 days)</div>
+  <div class="card-title">Timeline · last 90 days</div>
   <div class="chart-wrap">
     <canvas id="timeline-chart"></canvas>
   </div>
@@ -411,13 +473,13 @@
       <div class="legend-dot" style="background:var(--good)"></div>Good
     </div>
     <div class="legend-item">
-      <div class="legend-dot" style="background:var(--okay)"></div>Okay
-    </div>
-    <div class="legend-item">
       <div class="legend-dot" style="background:var(--low)"></div>Low
     </div>
     <div class="legend-item">
       <div class="legend-dot" style="background:var(--rough)"></div>Rough
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--accent);border-radius:2px"></div>7d EMA
     </div>
   </div>
 </div>
@@ -426,11 +488,11 @@
 <div class="card">
   <div class="card-title">Cycle Detector</div>
   <div id="cycle-content">
-    <div class="no-data">Log at least 14 days to detect a cycle.</div>
+    <div class="no-data">Log at least 7 days to detect a cycle.</div>
   </div>
 </div>
 
-<!-- Next Prediction -->
+<!-- Prediction -->
 <div class="card" id="pred-card" style="display:none">
   <div class="card-title">Coming Up</div>
   <div class="prediction-row" id="pred-row"></div>
@@ -446,20 +508,29 @@
 <div class="card">
   <div class="card-title">Log History</div>
   <div class="history-list" id="history-list"></div>
-  <div class="no-data" id="history-empty" style="display:none">
-    No entries yet.
-  </div>
+  <div class="no-data" id="history-empty" style="display:none">No entries yet.</div>
 </div>
 
 <script>
-// ── Storage ──────────────────────────────────────────────────
+// ── Mood definitions (4 levels) ───────────────────────────────
+const MOODS = {
+   2: { id: 'great', label: 'Great', color: '#f5c842', face: '#face-great' },
+   1: { id: 'good',  label: 'Good',  color: '#7ec87e', face: '#face-good'  },
+  '-1': { id: 'low',  label: 'Low',  color: '#7b9fff', face: '#face-low'   },
+  '-2': { id: 'rough',label: 'Rough',color: '#c07bff', face: '#face-rough' },
+};
+
+function moodOf(v) {
+  return MOODS[v] || MOODS[String(v)] || null;
+}
+
+// ── Storage ───────────────────────────────────────────────────
 const STORE_KEY = 'moodcycle_v1';
 
 function loadData() {
   try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
   catch { return {}; }
 }
-
 function saveData(d) {
   localStorage.setItem(STORE_KEY, JSON.stringify(d));
 }
@@ -467,34 +538,20 @@ function saveData(d) {
 // ── Date helpers ──────────────────────────────────────────────
 function today() {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
-
-function formatDate(iso) {
-  const [y, m, dy] = iso.split('-').map(Number);
-  const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${names[m-1]} ${dy}, ${y}`;
-}
-
-function daysBetween(a, b) {
-  // a, b are 'YYYY-MM-DD'
-  return Math.round((new Date(b) - new Date(a)) / 86400000);
-}
-
+function pad(n) { return String(n).padStart(2,'0'); }
 function addDays(iso, n) {
   const d = new Date(iso);
   d.setDate(d.getDate() + n);
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
-
-// ── Mood labels ───────────────────────────────────────────────
-const MOODS = {
-   2: { emoji: '😄', label: 'Great',  color: '#f5c842' },
-   1: { emoji: '🙂', label: 'Good',   color: '#7ec87e' },
-   0: { emoji: '😐', label: 'Okay',   color: '#888899' },
-  '-1': { emoji: '😔', label: 'Low', color: '#7b9fff' },
-  '-2': { emoji: '😢', label: 'Rough', color: '#c07bff' },
-};
+function formatDate(iso) {
+  const [y,m,dy] = iso.split('-').map(Number);
+  const mn = ['Jan','Feb','Mar','Apr','May','Jun',
+               'Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${mn[m-1]} ${dy}, ${y}`;
+}
 
 // ── State ─────────────────────────────────────────────────────
 let data = loadData();
@@ -502,28 +559,27 @@ let selectedMood = null;
 let timelineChart = null;
 let corrChart = null;
 
-// ── Init ──────────────────────────────────────────────────────
+// ── Boot ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initPicker();
   render();
+  if ('serviceWorker' in navigator)
+    navigator.serviceWorker.register('./service-worker.js');
 });
 
+// ── Picker ────────────────────────────────────────────────────
 function initPicker() {
-  const todayKey = today();
-  document.getElementById('today-label').textContent =
-    formatDate(todayKey);
-
-  // If already logged today, show it
-  if (data[todayKey] !== undefined) {
-    const m = data[todayKey];
-    document.getElementById('logged-msg').textContent =
-      `Already logged: ${MOODS[m].emoji} ${MOODS[m].label}`;
-    document.getElementById('log-btn').textContent = 'Update';
-    selectedMood = m;
-    highlightBtn(m);
+  document.getElementById('today-label').textContent = formatDate(today());
+  const todayVal = data[today()];
+  if (todayVal !== undefined) {
+    selectedMood = todayVal;
+    highlightBtn(todayVal);
     document.getElementById('log-btn').disabled = false;
+    document.getElementById('log-btn').textContent = 'Update';
+    const m = moodOf(todayVal);
+    document.getElementById('logged-msg').textContent =
+      m ? `Logged: ${m.label}` : '';
   }
-
   document.querySelectorAll('.mood-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       selectedMood = parseInt(btn.dataset.val);
@@ -531,31 +587,27 @@ function initPicker() {
       document.getElementById('log-btn').disabled = false;
     });
   });
-
-  document.getElementById('log-btn').addEventListener('click', logToday);
-}
-
-function highlightBtn(val) {
-  document.querySelectorAll('.mood-btn').forEach(b => {
-    b.classList.toggle('selected', parseInt(b.dataset.val) === val);
+  document.getElementById('log-btn').addEventListener('click', () => {
+    if (selectedMood === null) return;
+    data[today()] = selectedMood;
+    saveData(data);
+    const m = moodOf(selectedMood);
+    document.getElementById('logged-msg').textContent =
+      m ? `Logged: ${m.label}` : '';
+    document.getElementById('log-btn').textContent = 'Update';
+    render();
   });
 }
 
-function logToday() {
-  if (selectedMood === null) return;
-  const key = today();
-  data[key] = selectedMood;
-  saveData(data);
-  const m = MOODS[selectedMood];
-  document.getElementById('logged-msg').textContent =
-    `Logged: ${m.emoji} ${m.label}`;
-  document.getElementById('log-btn').textContent = 'Update';
-  render();
+function highlightBtn(val) {
+  document.querySelectorAll('.mood-btn').forEach(b =>
+    b.classList.toggle('selected', parseInt(b.dataset.val) === val)
+  );
 }
 
-// ── Main render ───────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────
 function render() {
-  const entries = getSortedEntries();
+  const entries = Object.entries(data).sort((a,b) => a[0].localeCompare(b[0]));
   renderStats(entries);
   renderTimeline(entries);
   renderCycle(entries);
@@ -563,123 +615,158 @@ function render() {
   renderHistory(entries);
 }
 
-function getSortedEntries() {
-  return Object.entries(data)
-    .sort((a, b) => a[0].localeCompare(b[0]));
-}
-
 // ── Stats ─────────────────────────────────────────────────────
 function renderStats(entries) {
-  const n = entries.length;
-  document.getElementById('stat-days').textContent = n;
+  document.getElementById('stat-days').textContent = entries.length;
 
-  // streak
-  let streak = 0;
-  let cur = today();
-  while (data[cur] !== undefined) {
-    streak++;
-    cur = addDays(cur, -1);
-  }
+  let streak = 0, cur = today();
+  while (data[cur] !== undefined) { streak++; cur = addDays(cur,-1); }
   document.getElementById('stat-streak').textContent = streak;
 
-  if (!n) {
+  if (!entries.length) {
     document.getElementById('stat-avg').textContent = '—';
-    document.getElementById('stat-sad').textContent = '0%';
+    document.getElementById('stat-low').textContent = '0%';
     return;
   }
-
   const vals = entries.map(e => e[1]);
-  const avg = vals.reduce((a,b) => a+b, 0) / n;
-  const avgMood = avg >= 1.5 ? MOODS[2] :
-                  avg >= 0.5 ? MOODS[1] :
-                  avg >= -0.5 ? MOODS[0] :
-                  avg >= -1.5 ? MOODS['-1'] : MOODS['-2'];
-  document.getElementById('stat-avg').textContent = avgMood.emoji;
+  const avg = vals.reduce((a,b) => a+b,0) / vals.length;
+  const m = avg >= 1.5 ? MOODS[2] :
+            avg >= 0   ? MOODS[1] :
+            avg >= -1.5 ? MOODS['-1'] : MOODS['-2'];
+  document.getElementById('stat-avg').textContent = m.label;
+  const low = vals.filter(v => v < 0).length;
+  document.getElementById('stat-low').textContent =
+    Math.round(low/vals.length*100) + '%';
+}
 
-  const lowDays = vals.filter(v => v < 0).length;
-  document.getElementById('stat-sad').textContent =
-    Math.round(lowDays / n * 100) + '%';
+// ── Gap-fill dense timeline ───────────────────────────────────
+// Days not logged are linearly interpolated from surrounding logged days.
+// This lets the cycle detector treat gaps as "probably okay" signal
+// rather than missing data, which is the right assumption when you
+// mostly log when feeling rough.
+function buildDenseTimeline(entries, startDate, endDate) {
+  const map = Object.fromEntries(entries);
+  const days = [];
+  let cur = startDate;
+  while (cur <= endDate) { days.push(cur); cur = addDays(cur,1); }
+
+  const vals = days.map(d => map[d] !== undefined ? map[d] : null);
+
+  // linear interpolate between known values
+  for (let i = 0; i < vals.length; i++) {
+    if (vals[i] !== null) continue;
+    let prev = i-1; while (prev >= 0 && vals[prev] === null) prev--;
+    let next = i+1; while (next < vals.length && vals[next] === null) next++;
+    if (prev < 0 && next >= vals.length) { vals[i] = 0; continue; }
+    if (prev < 0) { vals[i] = vals[next]; continue; }
+    if (next >= vals.length) { vals[i] = vals[prev]; continue; }
+    const t = (i-prev)/(next-prev);
+    vals[i] = vals[prev] + t*(vals[next]-vals[prev]);
+  }
+  return { days, vals };
+}
+
+// ── EMA ───────────────────────────────────────────────────────
+function computeEMA(vals, period) {
+  const alpha = 2/(period+1);
+  const ema = [];
+  for (let i = 0; i < vals.length; i++) {
+    ema.push(i === 0 ? vals[0] : alpha*vals[i] + (1-alpha)*ema[i-1]);
+  }
+  return ema;
 }
 
 // ── Timeline chart ────────────────────────────────────────────
 function renderTimeline(entries) {
   const cutoff = addDays(today(), -89);
   const recent = entries.filter(e => e[0] >= cutoff);
-
-  // build point colors
-  const colors = recent.map(e => {
-    const v = e[1];
-    return v === 2  ? '#f5c842' :
-           v === 1  ? '#7ec87e' :
-           v === 0  ? '#888899' :
-           v === -1 ? '#7b9fff' : '#c07bff';
-  });
-
   const ctx = document.getElementById('timeline-chart').getContext('2d');
-
   if (timelineChart) timelineChart.destroy();
-
   if (!recent.length) return;
 
-  // gradient fill
-  const grad = ctx.createLinearGradient(0, 0, 0, 180);
-  grad.addColorStop(0, '#f5c84230');
-  grad.addColorStop(0.5, '#7b9fff18');
-  grad.addColorStop(1, '#c07bff10');
+  const { days, vals: dense } = buildDenseTimeline(recent, cutoff, today());
+  const ema7 = computeEMA(dense, 7);
+  const logMap = Object.fromEntries(recent);
+
+  const dotColors = days.map(d => {
+    const v = logMap[d];
+    if (v === undefined) return 'transparent';
+    return moodOf(v)?.color || '#888';
+  });
+  const dotRadius = days.map(d => logMap[d] !== undefined ? 4 : 0);
+  const labels = days.map(d => { const p=d.split('-'); return `${p[1]}/${p[2]}`; });
+
+  const grad = ctx.createLinearGradient(0,0,0,180);
+  grad.addColorStop(0, '#e8944c22');
+  grad.addColorStop(1, '#0e0a0600');
 
   timelineChart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: recent.map(e => {
-        const parts = e[0].split('-');
-        return `${parts[1]}/${parts[2]}`;
-      }),
-      datasets: [{
-        data: recent.map(e => e[1]),
-        borderColor: '#7b9fff',
-        borderWidth: 2,
-        pointBackgroundColor: colors,
-        pointBorderColor: colors,
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        fill: true,
-        backgroundColor: grad,
-        tension: 0.35,
-      }]
+      labels,
+      datasets: [
+        {
+          label: 'Mood',
+          data: days.map(d => logMap[d] !== undefined ? logMap[d] : null),
+          borderColor: 'transparent',
+          pointBackgroundColor: dotColors,
+          pointBorderColor: dotColors,
+          pointRadius: dotRadius,
+          pointHoverRadius: 6,
+          fill: false,
+          spanGaps: false,
+          order: 2,
+        },
+        {
+          label: '7d EMA',
+          data: ema7,
+          borderColor: '#e8944c',
+          borderWidth: 2.5,
+          pointRadius: 0,
+          fill: true,
+          backgroundColor: grad,
+          tension: 0.4,
+          order: 1,
+        },
+      ]
     },
     options: {
       animation: false,
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: {
-        callbacks: {
-          label: ctx => {
-            const v = ctx.raw;
-            const m = MOODS[v] || MOODS[String(v)];
-            return m ? `${m.emoji} ${m.label}` : v;
-          }
-        },
-        backgroundColor: '#1e1e2a',
-        borderColor: '#2a2a3a',
-        borderWidth: 1,
-        titleColor: '#e0e0f0',
-        bodyColor: '#e0e0f0',
-      }},
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          filter: item => item.datasetIndex === 0 && item.raw !== null,
+          callbacks: {
+            label: ctx => {
+              const m = moodOf(ctx.raw);
+              return m ? m.label : '';
+            }
+          },
+          backgroundColor: '#1a1208',
+          borderColor: '#2e2010',
+          borderWidth: 1,
+          titleColor: '#f0e8d8',
+          bodyColor: '#f0e8d8',
+        }
+      },
       scales: {
         x: {
-          grid: { color: '#2a2a3a' },
-          ticks: { color: '#6b6b88', maxTicksLimit: 8, font: { size: 10 } },
+          grid: { color: '#2e2010' },
+          ticks: { color: '#7a6040', maxTicksLimit: 8, font: { size: 10 } },
         },
         y: {
           min: -2.5, max: 2.5,
-          grid: { color: '#2a2a3a' },
+          grid: { color: '#2e2010' },
           ticks: {
-            color: '#6b6b88',
+            color: '#7a6040',
             stepSize: 1,
             font: { size: 10 },
             callback: v => {
-              const m = MOODS[v] || MOODS[String(v)];
-              return m ? m.emoji : '';
+              const labels = { 2:'Great', 1:'Good', '-1':'Low', '-2':'Rough' };
+              return labels[v] || '';
             }
           }
         }
@@ -691,106 +778,88 @@ function renderTimeline(entries) {
 // ── Autocorrelation ───────────────────────────────────────────
 function autocorrelate(vals) {
   const n = vals.length;
-  const mean = vals.reduce((a,b) => a+b, 0) / n;
-  const centered = vals.map(x => x - mean);
-  const variance = centered.reduce((a,b) => a + b*b, 0) / n;
+  const mean = vals.reduce((a,b) => a+b,0)/n;
+  const c = vals.map(x => x-mean);
+  const variance = c.reduce((a,b) => a+b*b,0)/n;
   if (variance === 0) return [];
-
   const results = [];
-  const maxLag = Math.min(60, Math.floor(n / 2));
+  const maxLag = Math.min(60, Math.floor(n/2));
   for (let lag = 2; lag <= maxLag; lag++) {
     let sum = 0;
-    for (let i = 0; i < n - lag; i++) {
-      sum += centered[i] * centered[i + lag];
-    }
-    results.push({ lag, r: sum / ((n - lag) * variance) });
+    for (let i = 0; i < n-lag; i++) sum += c[i]*c[i+lag];
+    results.push({ lag, r: sum/((n-lag)*variance) });
   }
   return results;
 }
 
+// ── Cycle render ──────────────────────────────────────────────
 function renderCycle(entries) {
   const el = document.getElementById('cycle-content');
-
-  if (entries.length < 14) {
-    el.innerHTML =
-      `<div class="no-data">Log at least 14 days to detect a cycle.</div>`;
+  if (entries.length < 7) {
+    el.innerHTML = `<div class="no-data">Log at least 7 days to detect a cycle.</div>`;
     document.getElementById('pred-card').style.display = 'none';
     return;
   }
 
-  const vals = entries.map(e => e[1]);
+  const { vals: dense } = buildDenseTimeline(entries, entries[0][0], today());
+  const vals = computeEMA(dense, 3);
   const corrs = autocorrelate(vals);
 
   if (!corrs.length) {
-    el.innerHTML = `<div class="no-data">Not enough variation to detect a cycle.</div>`;
+    el.innerHTML = `<div class="no-data">Not enough variation yet.</div>`;
     return;
   }
 
-  // Find dominant peak (max positive autocorrelation, lag >= 4)
   const peaks = corrs.filter(c => c.lag >= 4);
   if (!peaks.length) {
-    el.innerHTML = `<div class="no-data">No clear cycle detected yet.</div>`;
+    el.innerHTML = `<div class="no-data">No clear cycle detected yet. Keep logging.</div>`;
     return;
   }
 
-  const best = peaks.reduce((a, b) => b.r > a.r ? b : a);
-  const confidence = Math.max(0, Math.min(1, best.r));
-  const confPct = Math.round(confidence * 100);
+  const best = peaks.reduce((a,b) => b.r > a.r ? b : a);
+  const confPct = Math.round(Math.max(0,Math.min(1,best.r))*100);
   const confLabel = confPct > 60 ? 'Strong' : confPct > 35 ? 'Moderate' : 'Weak';
-  const confColor = confPct > 60 ? '#7ec87e' : confPct > 35 ? '#f5c842' : '#888899';
+  const confColor = confPct > 60 ? '#7ec87e' : confPct > 35 ? '#f5c842' : '#7a6040';
 
-  // Secondary peak
-  const others = peaks.filter(c =>
-    Math.abs(c.lag - best.lag) > 3
-  ).sort((a,b) => b.r - a.r);
+  const others = peaks
+    .filter(c => Math.abs(c.lag-best.lag) > 3)
+    .sort((a,b) => b.r-a.r);
   const second = others[0];
 
-  // Phase: where are we in the cycle right now?
   const cycleLen = best.lag;
-  const totalDays = entries.length;
-  const phase = totalDays % cycleLen;
-  const daysUntilLow  = (cycleLen - phase) % cycleLen || cycleLen;
-  const daysUntilHigh = Math.round(cycleLen / 2 - phase + cycleLen) % cycleLen || cycleLen;
+  const phase = entries.length % cycleLen;
 
-  // Avg mood by cycle position
   const byPos = Array.from({length: cycleLen}, () => []);
-  entries.forEach((e, i) => {
-    byPos[i % cycleLen].push(e[1]);
-  });
+  entries.forEach((e,i) => byPos[i%cycleLen].push(e[1]));
   const avgByPos = byPos.map(arr =>
     arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null
   );
-  const peakPos = avgByPos.reduce((best, v, i) =>
-    v !== null && (best === null || v > avgByPos[best]) ? i : best, null);
-  const troughPos = avgByPos.reduce((best, v, i) =>
-    v !== null && (best === null || v < avgByPos[best]) ? i : best, null);
-
-  const daysToNext = (pos, curPhase) => {
-    const d = (pos - curPhase + cycleLen) % cycleLen;
+  const peakPos   = avgByPos.reduce((b,v,i) =>
+    v!==null && (b===null||v>avgByPos[b]) ? i : b, null);
+  const troughPos = avgByPos.reduce((b,v,i) =>
+    v!==null && (b===null||v<avgByPos[b]) ? i : b, null);
+  const daysToNext = pos => {
+    const d = (pos-phase+cycleLen)%cycleLen;
     return d === 0 ? cycleLen : d;
   };
 
   el.innerHTML = `
     <div class="cycle-result">
-      <div class="cycle-big">${best.lag}<span style="font-size:18px;font-weight:400;color:var(--muted)">d</span></div>
+      <div class="cycle-big">${cycleLen}<span style="font-size:20px;font-weight:400;color:var(--muted)">d</span></div>
       <div class="cycle-meta">
-        <div class="cycle-label">Primary cycle: ${best.lag}-day rhythm</div>
+        <div class="cycle-label">${cycleLen}-day rhythm detected</div>
         <div class="cycle-desc">
-          Your mood repeats roughly every <strong>${best.lag} days</strong>.
-          ${second ? `A secondary ${second.lag}-day pattern also appears.` : ''}
+          Your mood repeats roughly every ${cycleLen} days.${second ? ` Secondary ${second.lag}d pattern also visible.` : ''}
         </div>
         <div class="confidence-bar">
           <div class="confidence-fill" style="width:${confPct}%;background:${confColor}"></div>
         </div>
-        <div class="confidence-label">${confLabel} signal · ${confPct}% confidence</div>
+        <div class="confidence-label">${confLabel} · ${confPct}% confidence</div>
       </div>
     </div>
-    <div class="corr-wrap">
-      <canvas id="corr-chart"></canvas>
-    </div>
+    <div class="corr-wrap"><canvas id="corr-chart"></canvas></div>
   `;
 
-  // Render autocorrelation chart
   const ctx2 = document.getElementById('corr-chart').getContext('2d');
   if (corrChart) corrChart.destroy();
   corrChart = new Chart(ctx2, {
@@ -800,8 +869,8 @@ function renderCycle(entries) {
       datasets: [{
         data: corrs.map(c => c.r),
         backgroundColor: corrs.map(c =>
-          c.lag === best.lag ? '#7b9fff' :
-          (second && c.lag === second.lag) ? '#f5c84288' : '#2a2a3a'
+          c.lag === best.lag ? '#e8944c' :
+          (second && c.lag === second.lag) ? '#e8944c55' : '#2e2010'
         ),
         borderWidth: 0,
       }]
@@ -815,57 +884,51 @@ function renderCycle(entries) {
         tooltip: {
           callbacks: {
             title: items => `Lag ${items[0].label} days`,
-            label: ctx => `Correlation: ${(ctx.raw).toFixed(3)}`,
+            label: ctx => `r = ${ctx.raw.toFixed(3)}`,
           },
-          backgroundColor: '#1e1e2a',
-          borderColor: '#2a2a3a',
+          backgroundColor: '#1a1208',
+          borderColor: '#2e2010',
           borderWidth: 1,
-          titleColor: '#e0e0f0',
-          bodyColor: '#9090a8',
+          titleColor: '#f0e8d8',
+          bodyColor: '#a08060',
         }
       },
       scales: {
         x: {
           grid: { display: false },
-          ticks: { color: '#6b6b88', font: { size: 9 },
-            callback: v => v % 5 === 0 ? corrs[v]?.lag : '',
+          ticks: {
+            color: '#7a6040',
+            font: { size: 9 },
+            callback: (v) => corrs[v]?.lag % 5 === 0 ? corrs[v].lag : '',
           }
         },
         y: {
-          grid: { color: '#2a2a3a' },
-          ticks: { color: '#6b6b88', font: { size: 9 } },
+          grid: { color: '#2e2010' },
+          ticks: { color: '#7a6040', font: { size: 9 } },
         }
       }
     }
   });
 
-  // Prediction card
   if (peakPos !== null && troughPos !== null) {
-    const dHigh = daysToNext(peakPos, phase);
-    const dLow  = daysToNext(troughPos, phase);
-
+    const dHigh = daysToNext(peakPos);
+    const dLow  = daysToNext(troughPos);
     document.getElementById('pred-card').style.display = '';
     document.getElementById('pred-row').innerHTML = `
       <div class="pred-card">
-        <div class="pred-icon">😄</div>
-        <div class="pred-label">Next high</div>
-        <div class="pred-val" style="color:var(--great)">
-          ${dHigh === 0 ? 'Today!' : `in ${dHigh}d`}
-        </div>
+        <svg class="pred-icon" width="28" height="28"><use href="#face-great"/></svg>
+        <div class="pred-label">NEXT HIGH</div>
+        <div class="pred-val" style="color:var(--great)">${dHigh===0?'Today':dHigh+'d'}</div>
       </div>
       <div class="pred-card">
-        <div class="pred-icon">😢</div>
-        <div class="pred-label">Next low</div>
-        <div class="pred-val" style="color:var(--rough)">
-          ${dLow === 0 ? 'Today' : `in ${dLow}d`}
-        </div>
+        <svg class="pred-icon" width="28" height="28"><use href="#face-rough"/></svg>
+        <div class="pred-label">NEXT LOW</div>
+        <div class="pred-val" style="color:var(--rough)">${dLow===0?'Today':dLow+'d'}</div>
       </div>
       <div class="pred-card">
         <div class="pred-icon">🔄</div>
-        <div class="pred-label">Cycle length</div>
-        <div class="pred-val" style="color:var(--accent)">
-          ${cycleLen} days
-        </div>
+        <div class="pred-label">CYCLE</div>
+        <div class="pred-val" style="color:var(--accent)">${cycleLen}d</div>
       </div>
     `;
   }
@@ -876,53 +939,41 @@ function renderCalendar() {
   const el = document.getElementById('calendar');
   const todayKey = today();
   const start = addDays(todayKey, -89);
-
-  // Group by month
   const months = {};
   let cur = start;
   while (cur <= todayKey) {
-    const [y, m] = cur.split('-');
+    const [y,m] = cur.split('-');
     const key = `${y}-${m}`;
     if (!months[key]) months[key] = [];
     months[key].push(cur);
-    cur = addDays(cur, 1);
+    cur = addDays(cur,1);
   }
+  const MN = ['Jan','Feb','Mar','Apr','May','Jun',
+               'Jul','Aug','Sep','Oct','Nov','Dec'];
+  const DN = ['Su','Mo','Tu','We','Th','Fr','Sa'];
 
-  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun',
-                      'Jul','Aug','Sep','Oct','Nov','Dec'];
-  const dayNames = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const faceChar = { 2:'☀', 1:'✓', '-1':'·', '-2':'✕' };
 
   let html = '';
   Object.entries(months).forEach(([key, days]) => {
-    const [y, m] = key.split('-').map(Number);
-    html += `<div class="cal-month-lbl">${monthNames[m-1]} ${y}</div>`;
-    html += `<div class="cal-grid">`;
-
-    // Day headers
-    dayNames.forEach(d => {
-      html += `<div class="cal-day-hdr">${d}</div>`;
+    const [y,m] = key.split('-').map(Number);
+    html += `<div class="cal-month-lbl">${MN[m-1]} ${y}</div><div class="cal-grid">`;
+    DN.forEach(d => html += `<div class="cal-day-hdr">${d}</div>`);
+    const offset = new Date(days[0]).getDay();
+    for (let i=0; i<offset; i++) html += `<div class="cal-day empty"></div>`;
+    days.forEach(dk => {
+      const d = parseInt(dk.split('-')[2]);
+      const v = data[dk];
+      const mo = v !== undefined ? moodOf(v) : null;
+      const isToday = dk === todayKey;
+      html += `<div class="cal-day ${isToday?'today':''}"${
+        v!==undefined ? ` data-val="${v}"` : ''
+      } title="${formatDate(dk)}${mo?': '+mo.label:''}">${
+        mo ? (v===2?'😄':v===1?'🙂':v===-1?'😔':'😢') : d
+      }</div>`;
     });
-
-    // Offset
-    const firstDow = new Date(days[0]).getDay();
-    for (let i = 0; i < firstDow; i++) {
-      html += `<div class="cal-day empty"></div>`;
-    }
-
-    days.forEach(dateKey => {
-      const d = parseInt(dateKey.split('-')[2]);
-      const val = data[dateKey];
-      const isToday = dateKey === todayKey;
-      const m2 = val !== undefined ? MOODS[val] || MOODS[String(val)] : null;
-      html += `<div class="cal-day ${isToday ? 'today' : ''} ${val !== undefined ? 'has-data' : ''}"
-        ${val !== undefined ? `data-val="${val}"` : ''}
-        title="${formatDate(dateKey)}${m2 ? ': ' + m2.label : ''}"
-      >${m2 ? m2.emoji : d}</div>`;
-    });
-
-    html += `</div><br>`;
+    html += `</div>`;
   });
-
   el.innerHTML = html;
 }
 
@@ -930,50 +981,36 @@ function renderCalendar() {
 function renderHistory(entries) {
   const list = document.getElementById('history-list');
   const empty = document.getElementById('history-empty');
-
   if (!entries.length) {
     list.innerHTML = '';
     empty.style.display = '';
     return;
   }
   empty.style.display = 'none';
-
-  // Show most recent first, last 60
-  const shown = [...entries].reverse().slice(0, 60);
-  list.innerHTML = shown.map(([dateKey, val]) => {
-    const m = MOODS[val] || MOODS[String(val)];
+  list.innerHTML = [...entries].reverse().slice(0,60).map(([dk,v]) => {
+    const m = moodOf(v);
     return `
       <div class="history-item">
-        <span class="h-date">${formatDate(dateKey)}</span>
-        <span class="h-mood">${m ? m.emoji : val}</span>
-        <button class="h-del" onclick="deleteEntry('${dateKey}')" title="Delete">×</button>
-      </div>
-    `;
+        <span class="h-date">${formatDate(dk)}</span>
+        <svg class="h-face" width="22" height="22">
+          <use href="${m?.face||''}"/>
+        </svg>
+        <button class="h-del" onclick="deleteEntry('${dk}')">×</button>
+      </div>`;
   }).join('');
 }
 
-function deleteEntry(dateKey) {
-  delete data[dateKey];
+function deleteEntry(dk) {
+  delete data[dk];
   saveData(data);
-
-  // Reset picker if deleting today
-  if (dateKey === today()) {
+  if (dk === today()) {
     selectedMood = null;
-    document.querySelectorAll('.mood-btn').forEach(b =>
-      b.classList.remove('selected'));
+    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
     document.getElementById('log-btn').disabled = true;
     document.getElementById('log-btn').textContent = 'Log Today';
     document.getElementById('logged-msg').textContent = '';
   }
-
   render();
-}
-
-// ── Service Worker ────────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js');
-  });
 }
 </script>
 </body>
