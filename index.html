@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0d14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tristeza">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Tristeza Tem Fim</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0d0d14;
+    --card:     #16161f;
+    --border:   #2a2a3a;
+    --muted:    #6b6b88;
+    --text:     #e0e0f0;
+    --dim:      #9090a8;
+
+    --great:    #f5c842;
+    --good:     #7ec87e;
+    --okay:     #888899;
+    --low:      #7b9fff;
+    --rough:    #c07bff;
+
+    --accent:   #7b9fff;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    padding: 20px 16px 60px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 28px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* ── Mood picker ── */
+  .today-label {
+    font-size: 13px;
+    color: var(--dim);
+    text-align: center;
+    margin-bottom: 14px;
+  }
+
+  .mood-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .mood-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 14px 10px 10px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    min-width: 64px;
+    flex: 1;
+    max-width: 80px;
+  }
+  .mood-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .mood-btn.selected { border-color: var(--accent); background: #7b9fff18; }
+  .mood-btn .emoji { font-size: 26px; }
+  .mood-btn .label { font-size: 11px; color: var(--muted); }
+
+  .mood-btn[data-val="2"].selected  { border-color: var(--great); background: #f5c84218; }
+  .mood-btn[data-val="1"].selected  { border-color: var(--good);  background: #7ec87e18; }
+  .mood-btn[data-val="0"].selected  { border-color: var(--okay);  background: #88889918; }
+  .mood-btn[data-val="-1"].selected { border-color: var(--low);   background: #7b9fff18; }
+  .mood-btn[data-val="-2"].selected { border-color: var(--rough); background: #c07bff18; }
+
+  .log-btn {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .log-btn:disabled { opacity: 0.35; cursor: default; }
+  .log-btn:not(:disabled):hover { opacity: 0.85; }
+
+  .logged-msg {
+    text-align: center;
+    font-size: 13px;
+    color: var(--good);
+    margin-top: 10px;
+    min-height: 18px;
+  }
+
+  /* ── Stats row ── */
+  .stats-row {
+    display: flex;
+    gap: 10px;
+  }
+  .stat {
+    flex: 1;
+    text-align: center;
+    padding: 14px 8px;
+    background: #1e1e2a;
+    border-radius: 10px;
+  }
+  .stat .val {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .stat .lbl {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* ── Chart ── */
+  .chart-wrap {
+    position: relative;
+    height: 180px;
+  }
+
+  /* ── Cycle result ── */
+  .cycle-result {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .cycle-big {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--accent);
+    min-width: 80px;
+  }
+  .cycle-meta { flex: 1; min-width: 160px; }
+  .cycle-meta .cycle-label {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .cycle-meta .cycle-desc {
+    font-size: 13px;
+    color: var(--dim);
+    line-height: 1.5;
+  }
+  .confidence-bar {
+    margin-top: 10px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .confidence-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--accent);
+    transition: width 0.4s;
+  }
+  .confidence-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .no-data {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 20px 0;
+  }
+
+  /* ── Autocorr chart ── */
+  .corr-wrap {
+    position: relative;
+    height: 120px;
+    margin-top: 16px;
+  }
+
+  /* ── Calendar ── */
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-day-hdr {
+    text-align: center;
+    font-size: 10px;
+    color: var(--muted);
+    padding-bottom: 4px;
+    font-weight: 600;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--dim);
+    background: #1e1e2a;
+    position: relative;
+    cursor: default;
+  }
+  .cal-day.empty { background: transparent; }
+  .cal-day.has-data { color: #fff; }
+  .cal-day.today { outline: 2px solid var(--accent); }
+  .cal-day[data-val="2"]  { background: #f5c84233; color: var(--great); }
+  .cal-day[data-val="1"]  { background: #7ec87e33; color: var(--good); }
+  .cal-day[data-val="0"]  { background: #88889933; }
+  .cal-day[data-val="-1"] { background: #7b9fff33; color: var(--low); }
+  .cal-day[data-val="-2"] { background: #c07bff33; color: var(--rough); }
+
+  .cal-month-lbl {
+    font-size: 12px;
+    color: var(--dim);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .legend {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    justify-content: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--dim);
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  /* ── Next prediction ── */
+  .prediction-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .pred-card {
+    flex: 1;
+    min-width: 120px;
+    background: #1e1e2a;
+    border-radius: 10px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .pred-card .pred-icon { font-size: 24px; margin-bottom: 6px; }
+  .pred-card .pred-label { font-size: 11px; color: var(--muted); }
+  .pred-card .pred-val {
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  /* ── Edit history ── */
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #1e1e2a;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .history-item .h-date { color: var(--dim); }
+  .history-item .h-mood { font-size: 18px; }
+  .history-item .h-del {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 4px;
+    line-height: 1;
+    transition: color 0.15s;
+  }
+  .history-item .h-del:hover { color: #ff6b6b; }
+
+  @media (max-width: 480px) {
+    .cycle-big { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Tristeza Tem Fim</h1>
+<p class="subtitle">Track your highs and lows. Find your rhythm.</p>
+
+<!-- Log Today -->
+<div class="card" id="log-card">
+  <div class="card-title">How are you today?</div>
+  <div class="today-label" id="today-label"></div>
+  <div class="mood-row">
+    <button class="mood-btn" data-val="2">
+      <span class="emoji">😄</span><span class="label">Great</span>
+    </button>
+    <button class="mood-btn" data-val="1">
+      <span class="emoji">🙂</span><span class="label">Good</span>
+    </button>
+    <button class="mood-btn" data-val="0">
+      <span class="emoji">😐</span><span class="label">Okay</span>
+    </button>
+    <button class="mood-btn" data-val="-1">
+      <span class="emoji">😔</span><span class="label">Low</span>
+    </button>
+    <button class="mood-btn" data-val="-2">
+      <span class="emoji">😢</span><span class="label">Rough</span>
+    </button>
+  </div>
+  <button class="log-btn" id="log-btn" disabled>Log Today</button>
+  <div class="logged-msg" id="logged-msg"></div>
+</div>
+
+<!-- Stats -->
+<div class="card">
+  <div class="card-title">Overview</div>
+  <div class="stats-row">
+    <div class="stat">
+      <div class="val" id="stat-days">0</div>
+      <div class="lbl">Days logged</div>
+    </div>
+    <div class="stat">
+      <div class="val" id="stat-streak">0</div>
+      <div class="lbl">Streak</div>
+    </div>
+    <div class="stat">
+      <div class="val" id="stat-avg">—</div>
+      <div class="lbl">Avg mood</div>
+    </div>
+    <div class="stat">
+      <div class="val" id="stat-sad">0%</div>
+      <div class="lbl">Low days</div>
+    </div>
+  </div>
+</div>
+
+<!-- Timeline -->
+<div class="card">
+  <div class="card-title">Timeline (last 90 days)</div>
+  <div class="chart-wrap">
+    <canvas id="timeline-chart"></canvas>
+  </div>
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--great)"></div>Great
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--good)"></div>Good
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--okay)"></div>Okay
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--low)"></div>Low
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--rough)"></div>Rough
+    </div>
+  </div>
+</div>
+
+<!-- Cycle Detection -->
+<div class="card">
+  <div class="card-title">Cycle Detector</div>
+  <div id="cycle-content">
+    <div class="no-data">Log at least 14 days to detect a cycle.</div>
+  </div>
+</div>
+
+<!-- Next Prediction -->
+<div class="card" id="pred-card" style="display:none">
+  <div class="card-title">Coming Up</div>
+  <div class="prediction-row" id="pred-row"></div>
+</div>
+
+<!-- Calendar -->
+<div class="card">
+  <div class="card-title">Calendar</div>
+  <div id="calendar"></div>
+</div>
+
+<!-- History -->
+<div class="card">
+  <div class="card-title">Log History</div>
+  <div class="history-list" id="history-list"></div>
+  <div class="no-data" id="history-empty" style="display:none">
+    No entries yet.
+  </div>
+</div>
+
+<script>
+// ── Storage ──────────────────────────────────────────────────
+const STORE_KEY = 'moodcycle_v1';
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+  catch { return {}; }
+}
+
+function saveData(d) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(d));
+}
+
+// ── Date helpers ──────────────────────────────────────────────
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function formatDate(iso) {
+  const [y, m, dy] = iso.split('-').map(Number);
+  const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${names[m-1]} ${dy}, ${y}`;
+}
+
+function daysBetween(a, b) {
+  // a, b are 'YYYY-MM-DD'
+  return Math.round((new Date(b) - new Date(a)) / 86400000);
+}
+
+function addDays(iso, n) {
+  const d = new Date(iso);
+  d.setDate(d.getDate() + n);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ── Mood labels ───────────────────────────────────────────────
+const MOODS = {
+   2: { emoji: '😄', label: 'Great',  color: '#f5c842' },
+   1: { emoji: '🙂', label: 'Good',   color: '#7ec87e' },
+   0: { emoji: '😐', label: 'Okay',   color: '#888899' },
+  '-1': { emoji: '😔', label: 'Low', color: '#7b9fff' },
+  '-2': { emoji: '😢', label: 'Rough', color: '#c07bff' },
+};
+
+// ── State ─────────────────────────────────────────────────────
+let data = loadData();
+let selectedMood = null;
+let timelineChart = null;
+let corrChart = null;
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initPicker();
+  render();
+});
+
+function initPicker() {
+  const todayKey = today();
+  document.getElementById('today-label').textContent =
+    formatDate(todayKey);
+
+  // If already logged today, show it
+  if (data[todayKey] !== undefined) {
+    const m = data[todayKey];
+    document.getElementById('logged-msg').textContent =
+      `Already logged: ${MOODS[m].emoji} ${MOODS[m].label}`;
+    document.getElementById('log-btn').textContent = 'Update';
+    selectedMood = m;
+    highlightBtn(m);
+    document.getElementById('log-btn').disabled = false;
+  }
+
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedMood = parseInt(btn.dataset.val);
+      highlightBtn(selectedMood);
+      document.getElementById('log-btn').disabled = false;
+    });
+  });
+
+  document.getElementById('log-btn').addEventListener('click', logToday);
+}
+
+function highlightBtn(val) {
+  document.querySelectorAll('.mood-btn').forEach(b => {
+    b.classList.toggle('selected', parseInt(b.dataset.val) === val);
+  });
+}
+
+function logToday() {
+  if (selectedMood === null) return;
+  const key = today();
+  data[key] = selectedMood;
+  saveData(data);
+  const m = MOODS[selectedMood];
+  document.getElementById('logged-msg').textContent =
+    `Logged: ${m.emoji} ${m.label}`;
+  document.getElementById('log-btn').textContent = 'Update';
+  render();
+}
+
+// ── Main render ───────────────────────────────────────────────
+function render() {
+  const entries = getSortedEntries();
+  renderStats(entries);
+  renderTimeline(entries);
+  renderCycle(entries);
+  renderCalendar();
+  renderHistory(entries);
+}
+
+function getSortedEntries() {
+  return Object.entries(data)
+    .sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+// ── Stats ─────────────────────────────────────────────────────
+function renderStats(entries) {
+  const n = entries.length;
+  document.getElementById('stat-days').textContent = n;
+
+  // streak
+  let streak = 0;
+  let cur = today();
+  while (data[cur] !== undefined) {
+    streak++;
+    cur = addDays(cur, -1);
+  }
+  document.getElementById('stat-streak').textContent = streak;
+
+  if (!n) {
+    document.getElementById('stat-avg').textContent = '—';
+    document.getElementById('stat-sad').textContent = '0%';
+    return;
+  }
+
+  const vals = entries.map(e => e[1]);
+  const avg = vals.reduce((a,b) => a+b, 0) / n;
+  const avgMood = avg >= 1.5 ? MOODS[2] :
+                  avg >= 0.5 ? MOODS[1] :
+                  avg >= -0.5 ? MOODS[0] :
+                  avg >= -1.5 ? MOODS['-1'] : MOODS['-2'];
+  document.getElementById('stat-avg').textContent = avgMood.emoji;
+
+  const lowDays = vals.filter(v => v < 0).length;
+  document.getElementById('stat-sad').textContent =
+    Math.round(lowDays / n * 100) + '%';
+}
+
+// ── Timeline chart ────────────────────────────────────────────
+function renderTimeline(entries) {
+  const cutoff = addDays(today(), -89);
+  const recent = entries.filter(e => e[0] >= cutoff);
+
+  // build point colors
+  const colors = recent.map(e => {
+    const v = e[1];
+    return v === 2  ? '#f5c842' :
+           v === 1  ? '#7ec87e' :
+           v === 0  ? '#888899' :
+           v === -1 ? '#7b9fff' : '#c07bff';
+  });
+
+  const ctx = document.getElementById('timeline-chart').getContext('2d');
+
+  if (timelineChart) timelineChart.destroy();
+
+  if (!recent.length) return;
+
+  // gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, 180);
+  grad.addColorStop(0, '#f5c84230');
+  grad.addColorStop(0.5, '#7b9fff18');
+  grad.addColorStop(1, '#c07bff10');
+
+  timelineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: recent.map(e => {
+        const parts = e[0].split('-');
+        return `${parts[1]}/${parts[2]}`;
+      }),
+      datasets: [{
+        data: recent.map(e => e[1]),
+        borderColor: '#7b9fff',
+        borderWidth: 2,
+        pointBackgroundColor: colors,
+        pointBorderColor: colors,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        fill: true,
+        backgroundColor: grad,
+        tension: 0.35,
+      }]
+    },
+    options: {
+      animation: false,
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: {
+          label: ctx => {
+            const v = ctx.raw;
+            const m = MOODS[v] || MOODS[String(v)];
+            return m ? `${m.emoji} ${m.label}` : v;
+          }
+        },
+        backgroundColor: '#1e1e2a',
+        borderColor: '#2a2a3a',
+        borderWidth: 1,
+        titleColor: '#e0e0f0',
+        bodyColor: '#e0e0f0',
+      }},
+      scales: {
+        x: {
+          grid: { color: '#2a2a3a' },
+          ticks: { color: '#6b6b88', maxTicksLimit: 8, font: { size: 10 } },
+        },
+        y: {
+          min: -2.5, max: 2.5,
+          grid: { color: '#2a2a3a' },
+          ticks: {
+            color: '#6b6b88',
+            stepSize: 1,
+            font: { size: 10 },
+            callback: v => {
+              const m = MOODS[v] || MOODS[String(v)];
+              return m ? m.emoji : '';
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ── Autocorrelation ───────────────────────────────────────────
+function autocorrelate(vals) {
+  const n = vals.length;
+  const mean = vals.reduce((a,b) => a+b, 0) / n;
+  const centered = vals.map(x => x - mean);
+  const variance = centered.reduce((a,b) => a + b*b, 0) / n;
+  if (variance === 0) return [];
+
+  const results = [];
+  const maxLag = Math.min(60, Math.floor(n / 2));
+  for (let lag = 2; lag <= maxLag; lag++) {
+    let sum = 0;
+    for (let i = 0; i < n - lag; i++) {
+      sum += centered[i] * centered[i + lag];
+    }
+    results.push({ lag, r: sum / ((n - lag) * variance) });
+  }
+  return results;
+}
+
+function renderCycle(entries) {
+  const el = document.getElementById('cycle-content');
+
+  if (entries.length < 14) {
+    el.innerHTML =
+      `<div class="no-data">Log at least 14 days to detect a cycle.</div>`;
+    document.getElementById('pred-card').style.display = 'none';
+    return;
+  }
+
+  const vals = entries.map(e => e[1]);
+  const corrs = autocorrelate(vals);
+
+  if (!corrs.length) {
+    el.innerHTML = `<div class="no-data">Not enough variation to detect a cycle.</div>`;
+    return;
+  }
+
+  // Find dominant peak (max positive autocorrelation, lag >= 4)
+  const peaks = corrs.filter(c => c.lag >= 4);
+  if (!peaks.length) {
+    el.innerHTML = `<div class="no-data">No clear cycle detected yet.</div>`;
+    return;
+  }
+
+  const best = peaks.reduce((a, b) => b.r > a.r ? b : a);
+  const confidence = Math.max(0, Math.min(1, best.r));
+  const confPct = Math.round(confidence * 100);
+  const confLabel = confPct > 60 ? 'Strong' : confPct > 35 ? 'Moderate' : 'Weak';
+  const confColor = confPct > 60 ? '#7ec87e' : confPct > 35 ? '#f5c842' : '#888899';
+
+  // Secondary peak
+  const others = peaks.filter(c =>
+    Math.abs(c.lag - best.lag) > 3
+  ).sort((a,b) => b.r - a.r);
+  const second = others[0];
+
+  // Phase: where are we in the cycle right now?
+  const cycleLen = best.lag;
+  const totalDays = entries.length;
+  const phase = totalDays % cycleLen;
+  const daysUntilLow  = (cycleLen - phase) % cycleLen || cycleLen;
+  const daysUntilHigh = Math.round(cycleLen / 2 - phase + cycleLen) % cycleLen || cycleLen;
+
+  // Avg mood by cycle position
+  const byPos = Array.from({length: cycleLen}, () => []);
+  entries.forEach((e, i) => {
+    byPos[i % cycleLen].push(e[1]);
+  });
+  const avgByPos = byPos.map(arr =>
+    arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null
+  );
+  const peakPos = avgByPos.reduce((best, v, i) =>
+    v !== null && (best === null || v > avgByPos[best]) ? i : best, null);
+  const troughPos = avgByPos.reduce((best, v, i) =>
+    v !== null && (best === null || v < avgByPos[best]) ? i : best, null);
+
+  const daysToNext = (pos, curPhase) => {
+    const d = (pos - curPhase + cycleLen) % cycleLen;
+    return d === 0 ? cycleLen : d;
+  };
+
+  el.innerHTML = `
+    <div class="cycle-result">
+      <div class="cycle-big">${best.lag}<span style="font-size:18px;font-weight:400;color:var(--muted)">d</span></div>
+      <div class="cycle-meta">
+        <div class="cycle-label">Primary cycle: ${best.lag}-day rhythm</div>
+        <div class="cycle-desc">
+          Your mood repeats roughly every <strong>${best.lag} days</strong>.
+          ${second ? `A secondary ${second.lag}-day pattern also appears.` : ''}
+        </div>
+        <div class="confidence-bar">
+          <div class="confidence-fill" style="width:${confPct}%;background:${confColor}"></div>
+        </div>
+        <div class="confidence-label">${confLabel} signal · ${confPct}% confidence</div>
+      </div>
+    </div>
+    <div class="corr-wrap">
+      <canvas id="corr-chart"></canvas>
+    </div>
+  `;
+
+  // Render autocorrelation chart
+  const ctx2 = document.getElementById('corr-chart').getContext('2d');
+  if (corrChart) corrChart.destroy();
+  corrChart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: corrs.map(c => c.lag),
+      datasets: [{
+        data: corrs.map(c => c.r),
+        backgroundColor: corrs.map(c =>
+          c.lag === best.lag ? '#7b9fff' :
+          (second && c.lag === second.lag) ? '#f5c84288' : '#2a2a3a'
+        ),
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      animation: false,
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: items => `Lag ${items[0].label} days`,
+            label: ctx => `Correlation: ${(ctx.raw).toFixed(3)}`,
+          },
+          backgroundColor: '#1e1e2a',
+          borderColor: '#2a2a3a',
+          borderWidth: 1,
+          titleColor: '#e0e0f0',
+          bodyColor: '#9090a8',
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#6b6b88', font: { size: 9 },
+            callback: v => v % 5 === 0 ? corrs[v]?.lag : '',
+          }
+        },
+        y: {
+          grid: { color: '#2a2a3a' },
+          ticks: { color: '#6b6b88', font: { size: 9 } },
+        }
+      }
+    }
+  });
+
+  // Prediction card
+  if (peakPos !== null && troughPos !== null) {
+    const dHigh = daysToNext(peakPos, phase);
+    const dLow  = daysToNext(troughPos, phase);
+
+    document.getElementById('pred-card').style.display = '';
+    document.getElementById('pred-row').innerHTML = `
+      <div class="pred-card">
+        <div class="pred-icon">😄</div>
+        <div class="pred-label">Next high</div>
+        <div class="pred-val" style="color:var(--great)">
+          ${dHigh === 0 ? 'Today!' : `in ${dHigh}d`}
+        </div>
+      </div>
+      <div class="pred-card">
+        <div class="pred-icon">😢</div>
+        <div class="pred-label">Next low</div>
+        <div class="pred-val" style="color:var(--rough)">
+          ${dLow === 0 ? 'Today' : `in ${dLow}d`}
+        </div>
+      </div>
+      <div class="pred-card">
+        <div class="pred-icon">🔄</div>
+        <div class="pred-label">Cycle length</div>
+        <div class="pred-val" style="color:var(--accent)">
+          ${cycleLen} days
+        </div>
+      </div>
+    `;
+  }
+}
+
+// ── Calendar ──────────────────────────────────────────────────
+function renderCalendar() {
+  const el = document.getElementById('calendar');
+  const todayKey = today();
+  const start = addDays(todayKey, -89);
+
+  // Group by month
+  const months = {};
+  let cur = start;
+  while (cur <= todayKey) {
+    const [y, m] = cur.split('-');
+    const key = `${y}-${m}`;
+    if (!months[key]) months[key] = [];
+    months[key].push(cur);
+    cur = addDays(cur, 1);
+  }
+
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun',
+                      'Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dayNames = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+  let html = '';
+  Object.entries(months).forEach(([key, days]) => {
+    const [y, m] = key.split('-').map(Number);
+    html += `<div class="cal-month-lbl">${monthNames[m-1]} ${y}</div>`;
+    html += `<div class="cal-grid">`;
+
+    // Day headers
+    dayNames.forEach(d => {
+      html += `<div class="cal-day-hdr">${d}</div>`;
+    });
+
+    // Offset
+    const firstDow = new Date(days[0]).getDay();
+    for (let i = 0; i < firstDow; i++) {
+      html += `<div class="cal-day empty"></div>`;
+    }
+
+    days.forEach(dateKey => {
+      const d = parseInt(dateKey.split('-')[2]);
+      const val = data[dateKey];
+      const isToday = dateKey === todayKey;
+      const m2 = val !== undefined ? MOODS[val] || MOODS[String(val)] : null;
+      html += `<div class="cal-day ${isToday ? 'today' : ''} ${val !== undefined ? 'has-data' : ''}"
+        ${val !== undefined ? `data-val="${val}"` : ''}
+        title="${formatDate(dateKey)}${m2 ? ': ' + m2.label : ''}"
+      >${m2 ? m2.emoji : d}</div>`;
+    });
+
+    html += `</div><br>`;
+  });
+
+  el.innerHTML = html;
+}
+
+// ── History ───────────────────────────────────────────────────
+function renderHistory(entries) {
+  const list = document.getElementById('history-list');
+  const empty = document.getElementById('history-empty');
+
+  if (!entries.length) {
+    list.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  // Show most recent first, last 60
+  const shown = [...entries].reverse().slice(0, 60);
+  list.innerHTML = shown.map(([dateKey, val]) => {
+    const m = MOODS[val] || MOODS[String(val)];
+    return `
+      <div class="history-item">
+        <span class="h-date">${formatDate(dateKey)}</span>
+        <span class="h-mood">${m ? m.emoji : val}</span>
+        <button class="h-del" onclick="deleteEntry('${dateKey}')" title="Delete">×</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function deleteEntry(dateKey) {
+  delete data[dateKey];
+  saveData(data);
+
+  // Reset picker if deleting today
+  if (dateKey === today()) {
+    selectedMood = null;
+    document.querySelectorAll('.mood-btn').forEach(b =>
+      b.classList.remove('selected'));
+    document.getElementById('log-btn').disabled = true;
+    document.getElementById('log-btn').textContent = 'Log Today';
+    document.getElementById('logged-msg').textContent = '';
+  }
+
+  render();
+}
+
+// ── Service Worker ────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js');
+  });
+}
+</script>
+</body>
+</html>
