@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Tristeza Tem Fim</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -501,6 +501,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedUrl = getSyncUrl();
   if (savedUrl) document.getElementById('sync-url').value = savedUrl;
 
+  // Re-render charts once Chart.js finishes loading
+  document.querySelector('script[src*="chart.js"]').addEventListener('load', () => {
+    const entries = Object.entries(data).sort((a,b)=>a[0].localeCompare(b[0]));
+    renderTimeline(entries);
+    renderCycle(entries);
+  });
+
   if ('serviceWorker' in navigator)
     navigator.serviceWorker.register('./service-worker.js');
 });
@@ -571,6 +578,7 @@ function ema(vals, period) {
 
 // ── Timeline chart ────────────────────────────────────────────
 function renderTimeline(entries) {
+  if (typeof Chart === 'undefined') return; // Chart.js not loaded yet
   const cutoff = addDays(today(),-89);
   const recent = entries.filter(e=>e[0]>=cutoff);
   const ctx = document.getElementById('timeline-chart').getContext('2d');
@@ -674,6 +682,7 @@ function autocorr(vals) {
 
 // ── Cycle render ──────────────────────────────────────────────
 function renderCycle(entries) {
+  if (typeof Chart === 'undefined') return;
   const el = document.getElementById('cycle-content');
   if (entries.length < 7) {
     el.innerHTML = `<div class="no-data">Log at least 7 days to detect a cycle.</div>`;
