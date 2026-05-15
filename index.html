@@ -387,9 +387,13 @@ h1 {
 
 <!-- History -->
 <div class="card">
-  <div class="card-title">Log History</div>
-  <div class="history-list" id="history-list"></div>
-  <div class="no-data" id="history-empty" style="display:none">No entries yet.</div>
+  <div class="card-title" id="history-toggle" onclick="toggleHistory()" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+    Log History <span id="history-chevron" style="font-size:13px;color:var(--muted)">▼</span>
+  </div>
+  <div id="history-body" style="display:none">
+    <div class="history-list" id="history-list"></div>
+    <div class="no-data" id="history-empty" style="display:none">No entries yet.</div>
+  </div>
 </div>
 
 <!-- Sync -->
@@ -887,6 +891,13 @@ function del(dk) {
     document.getElementById('logged-msg').textContent='';
   }
   render();
+}
+
+let historyOpen = false;
+function toggleHistory() {
+  historyOpen = !historyOpen;
+  document.getElementById('history-body').style.display = historyOpen ? '' : 'none';
+  document.getElementById('history-chevron').textContent = historyOpen ? '▲' : '▼';
 }
 </script>
 </body>
