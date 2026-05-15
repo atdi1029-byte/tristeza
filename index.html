@@ -100,24 +100,17 @@ h1 {
   transition: transform 0.12s, box-shadow 0.12s, background 0.15s, color 0.15s;
 }
 .mood-btn:active { transform: scale(0.94); }
-.mood-btn.selected {
-  transform: scale(1.06);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
+.mood-btn.selected { transform: scale(1.06); }
 
-/* unselected = soft pastel */
 .mood-btn[data-val="2"]  { background: #F5E8A0; }
 .mood-btn[data-val="1"]  { background: #B8E4C4; }
 .mood-btn[data-val="-1"] { background: #B8CCFF; }
 .mood-btn[data-val="-2"] { background: #D4B8EE; }
 
-/* selected = vivid */
-.mood-btn[data-val="2"].selected  { background: #D4A800; color: #3a2800; text-shadow: none; }
-.mood-btn[data-val="1"].selected  { background: #3DAA65; }
-.mood-btn[data-val="-1"].selected { background: #4A7FE8; }
-.mood-btn[data-val="-2"].selected { background: #9B5FD4; }
+.mood-btn.selected {
+  outline: 3px solid rgba(80,50,20,0.25);
+  outline-offset: 2px;
+}
 
 
 .logged-msg {
