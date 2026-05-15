@@ -10,7 +10,6 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Tristeza Tem Fim</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -461,7 +460,6 @@ function fmt(iso) {
 // ── State ─────────────────────────────────────────────────────
 let data = load();
 let sel  = null;
-let tchart = null, cchart = null;
 
 // ── Boot ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -498,13 +496,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Restore sync URL
   const savedUrl = getSyncUrl();
   if (savedUrl) document.getElementById('sync-url').value = savedUrl;
-
-  // Re-render charts once Chart.js finishes loading
-  document.querySelector('script[src*="chart.js"]').addEventListener('load', () => {
-    const entries = Object.entries(data).sort((a,b)=>a[0].localeCompare(b[0]));
-    renderTimeline(entries);
-    renderCycle(entries);
-  });
 
   if ('serviceWorker' in navigator)
     navigator.serviceWorker.register('./service-worker.js');
@@ -576,88 +567,69 @@ function ema(vals, period) {
 
 // ── Timeline chart ────────────────────────────────────────────
 function renderTimeline(entries) {
-  if (typeof Chart === 'undefined') return; // Chart.js not loaded yet
-  const cutoff = addDays(today(),-89);
-  const recent = entries.filter(e=>e[0]>=cutoff);
-  const ctx = document.getElementById('timeline-chart').getContext('2d');
-  if (tchart) tchart.destroy();
+  const cutoff = addDays(today(), -89);
+  const recent = entries.filter(e => e[0] >= cutoff);
+  const canvas = document.getElementById('timeline-chart');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth, H = 180;
+  canvas.width = W * devicePixelRatio;
+  canvas.height = H * devicePixelRatio;
+  canvas.style.height = H + 'px';
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  ctx.clearRect(0, 0, W, H);
+
   if (!recent.length) return;
 
   const {days, vals:dv} = dense(recent, cutoff, today());
   const e7 = ema(dv, 7);
   const lmap = Object.fromEntries(recent);
+  const n = days.length;
+  const pad = {l:8, r:8, t:12, b:24};
+  const cw = W - pad.l - pad.r;
+  const ch = H - pad.t - pad.b;
 
-  const dotColor = days.map(d => {
+  function xp(i) { return pad.l + (i/(n-1)) * cw; }
+  function yp(v) { return pad.t + (1 - (v+2)/4) * ch; }
+
+  // EMA fill
+  const grad = ctx.createLinearGradient(0, pad.t, 0, H);
+  grad.addColorStop(0, 'rgba(232,148,76,0.22)');
+  grad.addColorStop(1, 'rgba(232,148,76,0)');
+  ctx.beginPath();
+  ctx.moveTo(xp(0), yp(e7[0]));
+  for (let i = 1; i < n; i++) {
+    const xc = (xp(i-1) + xp(i)) / 2;
+    ctx.quadraticCurveTo(xp(i-1), yp(e7[i-1]), xc, (yp(e7[i-1])+yp(e7[i]))/2);
+  }
+  ctx.lineTo(xp(n-1), H); ctx.lineTo(xp(0), H);
+  ctx.closePath();
+  ctx.fillStyle = grad; ctx.fill();
+
+  // EMA line
+  ctx.beginPath();
+  ctx.moveTo(xp(0), yp(e7[0]));
+  for (let i = 1; i < n; i++) {
+    const xc = (xp(i-1) + xp(i)) / 2;
+    ctx.quadraticCurveTo(xp(i-1), yp(e7[i-1]), xc, (yp(e7[i-1])+yp(e7[i]))/2);
+  }
+  ctx.strokeStyle = '#E8944C'; ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round'; ctx.stroke();
+
+  // Dots for logged days
+  days.forEach((d, i) => {
     const v = lmap[d];
-    return v===undefined ? 'transparent' : (moodOf(v)?.color||'#888');
+    if (v === undefined) return;
+    const m = moodOf(v);
+    ctx.beginPath();
+    ctx.arc(xp(i), yp(v), 4.5, 0, Math.PI*2);
+    ctx.fillStyle = m?.color || '#888'; ctx.fill();
   });
-  const dotR = days.map(d => lmap[d]!==undefined ? 5 : 0);
-  const labels = days.map(d=>{ const p=d.split('-'); return `${p[1]}/${p[2]}`; });
 
-  const grad = ctx.createLinearGradient(0,0,0,180);
-  grad.addColorStop(0,'rgba(232,148,76,0.18)');
-  grad.addColorStop(1,'rgba(232,148,76,0)');
-
-  tchart = new Chart(ctx, {
-    type:'line',
-    data:{
-      labels,
-      datasets:[
-        {
-          label:'Mood',
-          data: days.map(d=>lmap[d]!==undefined?lmap[d]:null),
-          borderColor:'transparent',
-          pointBackgroundColor: dotColor,
-          pointBorderColor: dotColor,
-          pointRadius: dotR,
-          pointHoverRadius: 7,
-          fill:false, spanGaps:false, order:2,
-        },
-        {
-          label:'7d EMA',
-          data: e7,
-          borderColor:'#E8944C',
-          borderWidth:2.5,
-          pointRadius:0,
-          fill:true,
-          backgroundColor:grad,
-          tension:0.4,
-          order:1,
-        },
-      ]
-    },
-    options:{
-      animation:false, responsive:true, maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          filter:item=>item.datasetIndex===0&&item.raw!==null,
-          callbacks:{
-            label:ctx=>{const m=moodOf(ctx.raw);return m?m.label:'';}
-          },
-          backgroundColor:'#fff',
-          borderColor:'#EDD8BC',
-          borderWidth:1,
-          titleColor:'#3A2E28',
-          bodyColor:'#3A2E28',
-        }
-      },
-      scales:{
-        x:{
-          grid:{color:'#F0E0C8'},
-          ticks:{color:'#8A7A6A',maxTicksLimit:8,font:{size:10}},
-        },
-        y:{
-          min:-2.5,max:2.5,
-          grid:{color:'#F0E0C8'},
-          ticks:{
-            color:'#8A7A6A',stepSize:1,font:{size:10},
-            callback:v=>{const l={2:'Great',1:'Good','-1':'Low','-2':'Rough'};return l[v]||'';}
-          }
-        }
-      }
-    }
+  // Y axis labels
+  ctx.fillStyle = '#8A7A6A'; ctx.font = '10px sans-serif';
+  ctx.textAlign = 'left';
+  [{v:2,l:'Great'},{v:1,l:'Good'},{v:-1,l:'Low'},{v:-2,l:'Rough'}].forEach(({v,l}) => {
+    ctx.fillText(l, 2, yp(v) + 3);
   });
 }
 
@@ -680,7 +652,6 @@ function autocorr(vals) {
 
 // ── Cycle render ──────────────────────────────────────────────
 function renderCycle(entries) {
-  if (typeof Chart === 'undefined') return;
   const el = document.getElementById('cycle-content');
   if (entries.length < 7) {
     el.innerHTML = `<div class="no-data">Log at least 7 days to detect a cycle.</div>`;
@@ -731,39 +702,38 @@ function renderCycle(entries) {
     <div class="corr-wrap"><canvas id="corr-chart"></canvas></div>
   `;
 
-  const ctx2 = document.getElementById('corr-chart').getContext('2d');
-  if (cchart) cchart.destroy();
-  cchart = new Chart(ctx2,{
-    type:'bar',
-    data:{
-      labels:corrs.map(c=>c.lag),
-      datasets:[{
-        data:corrs.map(c=>c.r),
-        backgroundColor:corrs.map(c=>
-          c.lag===best.lag?'#E8944C':
-          (second&&c.lag===second.lag)?'#E8944C66':'#EDD8BC'
-        ),
-        borderWidth:0,
-      }]
-    },
-    options:{
-      animation:false,responsive:true,maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{
-            title:i=>`Lag ${i[0].label} days`,
-            label:c=>`r = ${c.raw.toFixed(3)}`,
-          },
-          backgroundColor:'#fff',borderColor:'#EDD8BC',borderWidth:1,
-          titleColor:'#3A2E28',bodyColor:'#8A7A6A',
-        }
-      },
-      scales:{
-        x:{grid:{display:false},ticks:{color:'#8A7A6A',font:{size:9},
-          callback:v=>corrs[v]?.lag%5===0?corrs[v].lag:''}},
-        y:{grid:{color:'#F0E0C8'},ticks:{color:'#8A7A6A',font:{size:9}}}
-      }
+  const canvas2 = document.getElementById('corr-chart');
+  const ctx2 = canvas2.getContext('2d');
+  const W2 = canvas2.offsetWidth, H2 = 110;
+  canvas2.width = W2 * devicePixelRatio;
+  canvas2.height = H2 * devicePixelRatio;
+  canvas2.style.height = H2 + 'px';
+  ctx2.scale(devicePixelRatio, devicePixelRatio);
+  ctx2.clearRect(0, 0, W2, H2);
+
+  const barW = Math.max(2, (W2 - 16) / corrs.length - 1);
+  const maxR = Math.max(...corrs.map(c => Math.abs(c.r)), 0.1);
+  const midY = H2 * 0.6;
+
+  corrs.forEach((c, i) => {
+    const x = 8 + i * (barW + 1);
+    const barH = (c.r / maxR) * (H2 * 0.55);
+    ctx2.fillStyle = c.lag===best.lag ? '#E8944C' :
+      (second&&c.lag===second.lag) ? '#E8944C88' : '#EDD8BC';
+    if (barH >= 0) ctx2.fillRect(x, midY - barH, barW, barH);
+    else ctx2.fillRect(x, midY, barW, -barH);
+  });
+
+  // Baseline
+  ctx2.strokeStyle = '#EDD8BC'; ctx2.lineWidth = 1;
+  ctx2.beginPath(); ctx2.moveTo(8, midY); ctx2.lineTo(W2-8, midY); ctx2.stroke();
+
+  // Labels every 5
+  ctx2.fillStyle = '#8A7A6A'; ctx2.font = '9px sans-serif'; ctx2.textAlign = 'center';
+  corrs.forEach((c, i) => {
+    if (c.lag % 10 === 0) {
+      const x = 8 + i * (barW + 1) + barW/2;
+      ctx2.fillText(c.lag, x, H2 - 2);
     }
   });
 
@@ -882,12 +852,12 @@ function syncPush(feedback = true) {
   if (!ep) { if(feedback) syncMsg('Paste your Apps Script URL first.', false); return; }
   if (feedback) syncMsg('Saving...');
   const payload = encodeURIComponent(JSON.stringify(data));
-  jsonpFetch(`${ep}?action=mood_push&data=${payload}`, (err, resp) => {
-    if (!err && resp && resp.ok)
-      syncMsg(`Saved — ${resp.count} entries in Sheets.`);
-    else if (feedback)
-      syncMsg('Save failed. Check the URL.', false);
-  });
+  // Fire-and-forget via img tag (same as SPX/Crypto) — no CORS, no waiting
+  const img = new Image();
+  img.onload = img.onerror = () => {
+    if (feedback) syncMsg(`Saved — ${Object.keys(data).length} entries.`);
+  };
+  img.src = `${ep}?action=mood_push&data=${payload}&_=${Date.now()}`;
 }
 
 function syncPull() {
