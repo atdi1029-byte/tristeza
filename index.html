@@ -448,8 +448,9 @@ function today() {
 }
 function p2(n) { return String(n).padStart(2,'0'); }
 function addDays(iso, n) {
-  const d = new Date(iso); d.setDate(d.getDate()+n);
-  return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+  const [y, m, d] = iso.split('-').map(Number);
+  const date = new Date(y, m-1, d+n); // local time — avoids UTC timezone off-by-one
+  return `${date.getFullYear()}-${p2(date.getMonth()+1)}-${p2(date.getDate())}`;
 }
 function fmt(iso) {
   const [y,m,d] = iso.split('-').map(Number);
