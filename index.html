@@ -412,9 +412,9 @@ h1 {
     style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);
     background:var(--bg);color:var(--text);font-size:13px;margin-bottom:10px;outline:none">
   <div style="display:flex;gap:8px">
-    <button onclick="syncPush()" style="flex:1;padding:11px;border-radius:10px;border:none;
+    <button onclick="saveSyncUrl()" style="flex:1;padding:11px;border-radius:10px;border:none;
       background:var(--accent);color:#fff;font-weight:700;font-size:13px;cursor:pointer">
-      Save to Sheets
+      Save URL
     </button>
     <button onclick="syncPull()" style="flex:1;padding:11px;border-radius:10px;border:none;
       background:var(--bg);border:1px solid var(--border);color:var(--text);
@@ -491,10 +491,15 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('logged-msg').textContent =
         m ? `Saved: ${m.label}` : 'Saved';
       render();
+      autoSync();
     });
   });
 
   render();
+
+  // Restore sync URL
+  const savedUrl = getSyncUrl();
+  if (savedUrl) document.getElementById('sync-url').value = savedUrl;
 
   if ('serviceWorker' in navigator)
     navigator.serviceWorker.register('./service-worker.js');
@@ -825,59 +830,82 @@ function renderHistory(entries) {
   }).join('');
 }
 
-// ── Sheets sync ───────────────────────────────────────────────
+// ── Sheets sync (JSONP — same as Cadence, no CORS issues) ─────
 const SYNC_KEY = 'moodcycle_sync_url';
+let _jpCounter = 0;
 
-function getUrl() {
-  const u = document.getElementById('sync-url');
-  if (!u.value) u.value = localStorage.getItem(SYNC_KEY)||'';
-  return u.value.trim();
+function getSyncUrl() {
+  return localStorage.getItem(SYNC_KEY) || '';
 }
 
-function syncMsg(txt, ok=true) {
+function syncMsg(txt, ok) {
   const el = document.getElementById('sync-msg');
   el.textContent = txt;
-  el.style.color = ok ? '#5BB87A' : '#E07A5F';
+  el.style.color = ok === false ? '#E07A5F' : '#5BB87A';
 }
 
-// Save all local data to Sheets
-function syncPush() {
-  const url = getUrl();
-  if (!url) { syncMsg('Paste your Apps Script URL first.', false); return; }
-  localStorage.setItem(SYNC_KEY, url);
-  syncMsg('Saving...');
+function jsonpFetch(url, cb) {
+  const cbName = '_moodCb_' + Date.now() + '_' + (++_jpCounter);
+  const script = document.createElement('script');
+  let done = false;
+  window[cbName] = resp => {
+    done = true; delete window[cbName]; script.remove(); cb(null, resp);
+  };
+  script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+  script.onerror = () => {
+    if (!done) { done=true; delete window[cbName]; script.remove(); cb('error'); }
+  };
+  setTimeout(() => {
+    if (!done) { done=true; delete window[cbName]; script.remove(); cb('timeout'); }
+  }, 20000);
+  document.head.appendChild(script);
+}
+
+// Auto-sync after every log (debounced 1.5s)
+let _syncDebounce = null;
+function autoSync() {
+  const ep = getSyncUrl();
+  if (!ep) return;
+  clearTimeout(_syncDebounce);
+  _syncDebounce = setTimeout(() => syncPush(false), 1500);
+}
+
+function syncPush(feedback = true) {
+  const ep = getSyncUrl();
+  if (!ep) { if(feedback) syncMsg('Paste your Apps Script URL first.', false); return; }
+  if (feedback) syncMsg('Saving...');
   const payload = encodeURIComponent(JSON.stringify(data));
-  // Use img-based GET to avoid CORS redirect issues (same pattern as your other apps)
-  const img = new Image();
-  img.onload = img.onerror = () => syncMsg('Saved to Sheets.');
-  img.src = `${url}?action=mood_push&data=${payload}&_=${Date.now()}`;
+  jsonpFetch(`${ep}?action=mood_push&data=${payload}`, (err, resp) => {
+    if (!err && resp && resp.ok)
+      syncMsg(`Saved — ${resp.count} entries in Sheets.`);
+    else if (feedback)
+      syncMsg('Save failed. Check the URL.', false);
+  });
 }
 
-// Load data from Sheets (merges with local, Sheets wins on conflict)
 function syncPull() {
-  const url = getUrl();
-  if (!url) { syncMsg('Paste your Apps Script URL first.', false); return; }
-  localStorage.setItem(SYNC_KEY, url);
+  const ep = getSyncUrl();
+  if (!ep) { syncMsg('Paste your Apps Script URL first.', false); return; }
   syncMsg('Loading...');
-  fetch(`${url}?action=mood_pull&_=${Date.now()}`)
-    .then(r => r.json())
-    .then(remote => {
-      if (!remote || typeof remote !== 'object')
-        throw new Error('bad response');
-      // merge: remote wins
-      Object.assign(data, remote);
+  jsonpFetch(`${ep}?action=mood_pull`, (err, resp) => {
+    if (!err && resp && resp.ok && resp.data) {
+      Object.assign(data, resp.data);
       save(data);
       render();
-      syncMsg(`Loaded ${Object.keys(remote).length} entries from Sheets.`);
-    })
-    .catch(() => syncMsg('Could not reach Sheets. Check the URL.', false));
+      syncMsg(`Loaded ${Object.keys(resp.data).length} entries from Sheets.`);
+    } else {
+      syncMsg('Could not reach Sheets. Check the URL.', false);
+    }
+  });
 }
 
-// Auto-restore sync URL
-document.addEventListener('DOMContentLoaded', () => {
-  const saved = localStorage.getItem(SYNC_KEY);
-  if (saved) document.getElementById('sync-url').value = saved;
-}, { once: false });
+function saveSyncUrl() {
+  const url = document.getElementById('sync-url').value.trim();
+  if (!url) return;
+  localStorage.setItem(SYNC_KEY, url);
+  syncMsg('URL saved. Syncing...');
+  syncPush(false);
+}
 
 function del(dk) {
   delete data[dk];

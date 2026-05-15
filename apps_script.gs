@@ -1,82 +1,75 @@
 // Tristeza Tem Fim — Google Apps Script backend
-// Paste this into a new Apps Script project, deploy as Web App
-// (Execute as: Me, Who can access: Anyone)
-// Then copy the deployment URL into the app's Sync card.
+// Paste into a new Apps Script project bound to a Google Sheet.
+// Deploy as Web App: Execute as Me, Access: Anyone.
+// Returns JSONP (same pattern as Cadence) — bypasses all CORS issues.
 
 const SHEET_NAME = 'MoodData';
-const SETTINGS_CELL = 'A1'; // stores JSON blob of all mood data
+const DATA_CELL  = 'A1';   // stores entire JSON blob
 
 function doGet(e) {
-  const action = e.parameter.action;
-  if (action === 'mood_push') return push(e);
-  if (action === 'mood_pull') return pull();
-  return ok({ status: 'tristeza running' });
+  const cb     = e.parameter.callback || '';
+  const action = e.parameter.action   || '';
+
+  if (action === 'mood_push') return respond(cb, push(e));
+  if (action === 'mood_pull') return respond(cb, pull());
+  return respond(cb, { ok: true, status: 'tristeza running' });
 }
 
-// Save entire mood dataset from the app
+// ── Save ──────────────────────────────────────────────────────
 function push(e) {
   try {
-    const raw = decodeURIComponent(e.parameter.data || '{}');
+    const raw      = decodeURIComponent(e.parameter.data || '{}');
     const incoming = JSON.parse(raw);
-    const sheet = getSheet();
-
-    // Merge with existing data (don't overwrite entries not in incoming)
+    const sheet    = getSheet();
     const existing = readData(sheet);
-    const merged = Object.assign({}, existing, incoming);
+    const merged   = Object.assign({}, existing, incoming);
     writeData(sheet, merged);
-    return ok({ status: 'saved', count: Object.keys(merged).length });
+    return { ok: true, count: Object.keys(merged).length };
   } catch(err) {
-    return ok({ status: 'error', msg: err.toString() });
+    return { ok: false, error: err.toString() };
   }
 }
 
-// Return all mood data as JSON
+// ── Load ──────────────────────────────────────────────────────
 function pull() {
   try {
-    const sheet = getSheet();
-    const data = readData(sheet);
-    return ok(data);
+    return { ok: true, data: readData(getSheet()) };
   } catch(err) {
-    return ok({ status: 'error', msg: err.toString() });
+    return { ok: false, error: err.toString() };
   }
 }
 
+// ── Helpers ───────────────────────────────────────────────────
 function readData(sheet) {
-  const val = sheet.getRange(SETTINGS_CELL).getValue();
+  const val = sheet.getRange(DATA_CELL).getValue();
   if (!val) return {};
   try { return JSON.parse(val); } catch { return {}; }
 }
 
 function writeData(sheet, data) {
-  sheet.getRange(SETTINGS_CELL).setValue(JSON.stringify(data));
+  sheet.getRange(DATA_CELL).setValue(JSON.stringify(data));
+  // Also write a human-readable table next to it (col B/C)
+  const labels = { '2':'Great','1':'Good','-1':'Low','-2':'Rough' };
+  const rows = Object.entries(data)
+    .sort((a,b) => a[0].localeCompare(b[0]))
+    .map(([date,val]) => [date, labels[String(val)] || val]);
+  if (rows.length) {
+    sheet.getRange(1, 2, sheet.getMaxRows(), 2).clearContent();
+    sheet.getRange(1, 2, rows.length, 2).setValues(rows);
+  }
 }
 
 function getSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(SHEET_NAME);
-  if (!sheet) {
-    sheet = ss.insertSheet(SHEET_NAME);
-    // Also write a human-readable table starting at B1
-    sheet.getRange('B1:C1').setValues([['Date', 'Mood']]);
-  }
-  return sheet;
+  return ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
 }
 
-function ok(data) {
-  return ContentService
-    .createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-// Optional: rebuild human-readable table (run manually if you want to see it)
-function rebuildTable() {
-  const sheet = getSheet();
-  const data = readData(sheet);
-  const labels = { '2':'Great', '1':'Good', '-1':'Low', '-2':'Rough' };
-  const rows = Object.entries(data)
-    .sort((a,b) => a[0].localeCompare(b[0]))
-    .map(([date, val]) => [date, labels[String(val)] || val]);
-  if (!rows.length) return;
-  const range = sheet.getRange(2, 2, rows.length, 2);
-  range.setValues(rows);
+// JSONP wrapper — same as Cadence
+function respond(cb, obj) {
+  const json = JSON.stringify(obj);
+  const body = cb ? `${cb}(${json})` : json;
+  const mime = cb
+    ? ContentService.MimeType.JAVASCRIPT
+    : ContentService.MimeType.JSON;
+  return ContentService.createTextOutput(body).setMimeType(mime);
 }
