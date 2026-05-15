@@ -96,37 +96,29 @@ h1 {
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
-  color: #fff;
-  opacity: 0.38;
-  transition: opacity 0.15s, transform 0.12s;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  color: rgba(80,50,20,0.5);
+  transition: transform 0.12s, box-shadow 0.12s, background 0.15s, color 0.15s;
 }
-.mood-btn:active  { transform: scale(0.94); }
-.mood-btn.selected { opacity: 1; transform: scale(1.05);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
-
-.mood-btn[data-val="2"]  { background: var(--great); color: #5a3e00; text-shadow: none; }
-.mood-btn[data-val="1"]  { background: var(--good); }
-.mood-btn[data-val="-1"] { background: var(--low); }
-.mood-btn[data-val="-2"] { background: var(--rough); }
-
-.log-btn {
-  display: block;
-  width: 100%;
-  margin-top: 14px;
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-  background: var(--accent);
+.mood-btn:active { transform: scale(0.94); }
+.mood-btn.selected {
+  transform: scale(1.06);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
   color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  letter-spacing: 0.03em;
-  transition: background 0.15s, opacity 0.15s;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.log-btn:disabled { opacity: 0.35; cursor: default; }
-.log-btn:not(:disabled):active { background: var(--accent-dk); }
+
+/* unselected = soft pastel */
+.mood-btn[data-val="2"]  { background: #F5E8A0; }
+.mood-btn[data-val="1"]  { background: #B8E4C4; }
+.mood-btn[data-val="-1"] { background: #B8CCFF; }
+.mood-btn[data-val="-2"] { background: #D4B8EE; }
+
+/* selected = vivid */
+.mood-btn[data-val="2"].selected  { background: #D4A800; color: #3a2800; text-shadow: none; }
+.mood-btn[data-val="1"].selected  { background: #3DAA65; }
+.mood-btn[data-val="-1"].selected { background: #4A7FE8; }
+.mood-btn[data-val="-2"].selected { background: #9B5FD4; }
+
 
 .logged-msg {
   text-align: center;
@@ -326,7 +318,6 @@ h1 {
 <body>
 
 <h1>Tristeza Tem Fim</h1>
-<p class="subtitle">sadness has an end</p>
 
 <!-- Log Today -->
 <div class="card">
@@ -338,7 +329,6 @@ h1 {
     <button class="mood-btn" data-val="-1">LOW</button>
     <button class="mood-btn" data-val="-2">ROUGH</button>
   </div>
-  <button class="log-btn" id="log-btn" disabled>Log Today</button>
   <div class="logged-msg" id="logged-msg"></div>
 </div>
 
@@ -491,32 +481,23 @@ document.addEventListener('DOMContentLoaded', () => {
   if (tv !== undefined) {
     sel = tv;
     pick(tv);
-    document.getElementById('log-btn').disabled = false;
-    document.getElementById('log-btn').textContent = 'Update';
     const m = moodOf(tv);
     document.getElementById('logged-msg').textContent =
-      m ? `Logged: ${m.label}` : '';
+      m ? `Saved: ${m.label}` : '';
   }
 
-  // mood button clicks
+  // tap a mood = log it immediately
   document.querySelectorAll('.mood-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       sel = parseInt(btn.dataset.val);
       pick(sel);
-      document.getElementById('log-btn').disabled = false;
+      data[today()] = sel;
+      save(data);
+      const m = moodOf(sel);
+      document.getElementById('logged-msg').textContent =
+        m ? `Saved: ${m.label}` : 'Saved';
+      render();
     });
-  });
-
-  // log button
-  document.getElementById('log-btn').addEventListener('click', () => {
-    if (sel === null) return;
-    data[today()] = sel;
-    save(data);
-    const m = moodOf(sel);
-    document.getElementById('logged-msg').textContent =
-      m ? `Saved: ${m.label}` : 'Saved';
-    document.getElementById('log-btn').textContent = 'Update';
-    render();
   });
 
   render();
