@@ -493,8 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
   render();
 
   // Restore sync URL
-  const savedUrl = getSyncUrl();
-  if (savedUrl) document.getElementById('sync-url').value = savedUrl;
+  document.getElementById('sync-url').value = getSyncUrl();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(regs => {
@@ -812,8 +811,9 @@ function renderHistory(entries) {
 const SYNC_KEY = 'moodcycle_sync_url';
 let _jpCounter = 0;
 
+const DEFAULT_SYNC_URL = 'https://script.google.com/macros/s/AKfycbxWW6kWxTV0IzTSo2RD-Ns1bVDjQcSKbutFs3cwNyqgSks7hfMvkgmy_NAof5J2vOyo3A/exec';
 function getSyncUrl() {
-  return localStorage.getItem(SYNC_KEY) || '';
+  return localStorage.getItem(SYNC_KEY) || DEFAULT_SYNC_URL;
 }
 
 function syncMsg(txt, ok) {
